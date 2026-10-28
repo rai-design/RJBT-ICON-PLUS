@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <!-- 1. PROTEKSI SESI LOGIN (AUTH GUARD KETAT) -->
+  <script>
+    (function() {
+      const userSession = localStorage.getItem('user_session');
+      if (!userSession) {
+        // Jika belum ada sesi login, paksa langsung alihkan ke login.html
+        window.location.replace('/login.html');
+      }
+    })();
+
+    // Fungsi Logout untuk Menghapus Sesi
+    function handleLogout() {
+      if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+        localStorage.removeItem('user_session');
+        window.location.replace('/login.html');
+      }
+    }
+
+    // Tampilkan Nama User yang Login saat DOM Siap
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const userSession = localStorage.getItem('user_session');
+        if (userSession) {
+          const user = JSON.parse(userSession);
+          const userNameElem = document.getElementById('loggedInUserName');
+          if (userNameElem && user) {
+            userNameElem.textContent = user.nama || user.username || 'Petugas';
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing user session:', e);
+      }
+    });
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Data Master - PLN Icon Plus</title>
+
+  <!-- FONT & ICONS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- STYLESHEET UTAMA -->
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* UTILITY & HELPER CLASSES */
+    .badge-status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+    .badge-good { background: #dcfce7; color: #15803d; }
+    .badge-warning { background: #fef3c7; color: #b45309; }
+    .badge-check { background: #ffedd5; color: #c2410c; }
+    .badge-dangerous { background: #fee2e2; color: #b91c1c; }
+
+    .text-green { color: #16a34a !important; }
+    .text-amber { color: #d97706 !important; }
+    .text-orange { color: #ea580c !important; }
+    .text-red { color: #dc2626 !important; }
+    .text-blue { color: #0284c7 !important; }
+
+    /* DASHBOARD LAYOUT & CARDS */
+    .page-heading { margin-bottom: 20px; padding: 0 !important; margin-left: 0 !important; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .kpi-card { background: #ffffff; padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .kpi-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-value { font-size: 1.75rem; font-weight: 800; color: var(--text); margin: 6px 0 2px 0; }
+    .kpi-sub { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; background: #ffffff; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); }
+    .filter-group { display: flex; gap: 10px; align-items: center; }
+    .select-input, .search-input-field { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem; outline: none; background: #ffffff; color: #1e293b; }
+    .select-input:focus, .search-input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 91, 148, 0.15); }
+
+    .table-container { background: #ffffff; border-radius: 12px; border: 1px solid var(--border); padding: 18px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .table-responsive { overflow-x: auto; max-height: 520px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .data-table th { background: #f8fafc; padding: 12px 10px; text-align: left; color: #475569; font-weight: 700; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    .data-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #1e293b; vertical-align: middle; }
+    .data-table tr:hover { background: #f8fafc; }
+
+    /* USER PROFILE BADGE IN TOPBAR */
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f1f5f9;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: none;
+      color: #dc2626;
+      cursor: pointer;
+      font-size: 0.95rem;
+      padding: 2px 4px;
+      transition: color 0.2s;
+    }
+
+    .btn-logout:hover {
+      color: #991b1b;
+    }
+
+    /* Dark Mode Overrides */
+    body.dark .kpi-card,
+    body.dark .filter-bar,
+    body.dark .table-container { background: #111E36 !important; border-color: var(--border) !important; }
+    body.dark .data-table th { background: #0B1220 !important; color: #cbd5e1 !important; border-color: var(--border) !important; }
+    body.dark .data-table td { border-color: var(--border) !important; color: #f8fafc !important; }
+    body.dark .data-table tr:hover { background: #172D4D !important; }
+    body.dark .select-input, body.dark .search-input-field { background: #172D4D !important; color: #f8fafc !important; border-color: var(--border) !important; }
+    body.dark .user-profile-badge { background: #172D4D !important; border-color: var(--border) !important; color: #f8fafc !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="pln-logo.png" alt="PLN Logo" class="brand-img" />
+        <div class="brand-text-container">
+          <span class="brand-pln">PLN</span>
+          <span class="brand-iconplus">Icon Plus</span>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <nav class="nav">
+          <div class="section-title">MENU UTAMA</div>
+          <a href="#" class="nav-item active" data-page="dashboard">
+            <span class="label">Data Master POP</span>
+          </a>
+
+          <div class="section-title">MONITORING PERANGKAT</div>
+          <button class="nav-item nav-parent" id="monitoringToggle" type="button">
+            <span class="label">Monitoring RJBT</span>
+            <span class="chevron" id="monitoringChevron">▼</span>
+          </button>
+          <div class="submenu open" id="monitoringSubmenu">
+            <ul class="submenu-tree">
+              <li><a href="#" class="sub-item" data-page="powersupply">Power Supply</a></li>
+              <li><a href="#" class="sub-item" data-page="ac">AC</a></li>
+              <li><a href="#" class="sub-item" data-page="genset">Genset</a></li>
+              <li><a href="#" class="sub-item" data-page="pm-pop">PM POP</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu">☰</button>
+        <div class="search-box">
+          <input type="text" placeholder="Cari POP, OLT, atau ID..." id="searchInput" />
+          <kbd>CTRL K</kbd>
+        </div>
+        
+        <div class="top-actions" style="display: flex; align-items: center; gap: 16px;">
+          <div class="clock" id="clock">
+            <span id="date">-- --- ----</span>
+            <strong id="time">00:00:00</strong>
+            <small>GMT+7</small>
+          </div>
+
+          <!-- PROFIL USER & LOGOUT -->
+          <div class="user-profile-badge">
+            <i class="fa-solid fa-circle-user" style="color: #0084bd; font-size: 1.1rem;"></i>
+            <span id="loggedInUserName" style="font-weight: 700; font-size: 0.82rem;">Admin</span>
+            <button onclick="handleLogout()" class="btn-logout" title="Keluar / Logout">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <section class="content">
+
+        <!-- DASHBOARD UTAMA -->
+        <div class="page dashboard-page active-page" id="page-dashboard">
+          
+          <div class="page-heading">
+            <div>
+              <span class="eyebrow">PREVENTIVE MAINTENANCE RJBT 2026</span>
+              <h1>Executive Dashboard - DATA MASTER POP</h1>
+              <p>Monitoring Health Index (HI) & kondisi infrastruktur POP SBU Regional Jawa Timur.</p>
+            </div>
+          </div>
+
+          <!-- KPI SUMMARY CARDS -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-title">TOTAL SITE POP (SBU)</span>
+              <div id="kpiTotalPop" class="kpi-value text-blue">874</div>
+              <span class="kpi-sub">Tersebar di 4 Regional KP</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">RATA-RATA HEALTH INDEX</span>
+              <div id="kpiAvgHi" class="kpi-value text-green">83.76%</div>
+              <span class="kpi-sub text-green"><i class="fa-solid fa-circle-check"></i> Good Condition</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">GOOD CONDITION (80-100%)</span>
+              <div id="kpiGoodCount" class="kpi-value text-green">521</div>
+              <span class="kpi-sub">Site Kondisi Prima</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">WARNING (60-79%)</span>
+              <div id="kpiWarningCount" class="kpi-value text-amber">335</div>
+              <span class="kpi-sub text-amber">Perlu Pemeliharaan</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">NEED CHECK / DANGEROUS</span>
+              <div id="kpiCriticalCount" class="kpi-value text-red">18</div>
+              <span class="kpi-sub text-red">Perlu Action Segera</span>
+            </div>
+          </div>
+
+          <!-- TABEL KONSOLIDASI HEALTH INDEX PER KP -->
+          <div class="table-container">
+            <div style="margin-bottom: 14px;">
+              <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text);">Matriks Kesehatan POP per Regional KP</h3>
+              <p style="font-size: 0.78rem; color: var(--muted);">Ringkasan distribusi status Resume Index berdasarkan sheet DATA MASTER</p>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>REGIONAL KP</th>
+                    <th style="text-align: center;">TOTAL POP</th>
+                    <th style="text-align: center;">AVG HEALTH INDEX</th>
+                    <th style="text-align: center;">GOOD CONDITION</th>
+                    <th style="text-align: center;">WARNING</th>
+                    <th style="text-align: center;">NEED CHECK</th>
+                    <th style="text-align: center;">DANGEROUS</th>
+                  </tr>
+                </thead>
+                <tbody id="tableKpSummaryBody">
+                  <!-- Render via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- DETAILED DATA MASTER POP TABLE -->
+          <div class="table-container">
+            <div class="filter-bar">
+              <div class="filter-group">
+                <strong style="font-size: 0.85rem; color: var(--text);"><i class="fa-solid fa-filter"></i> Filter Data:</strong>
+                <select id="filterKp" class="select-input" onchange="applyMasterFilters()">
+                  <option value="ALL">Semua Regional KP</option>
+                  <option value="SURABAYA">KP SURABAYA</option>
+                  <option value="MALANG">KP MALANG</option>
+                  <option value="MADIUN">KP MADIUN</option>
+                  <option value="JEMBER">KP JEMBER</option>
+                </select>
+
+                <select id="filterStatus" class="select-input" onchange="applyMasterFilters()">
+                  <option value="ALL">Semua Status (Resume Index)</option>
+                  <option value="GOOD CONDITION">GOOD CONDITION</option>
+                  <option value="WARNING">WARNING</option>
+                  <option value="NEED CHECK">NEED CHECK</option>
+                  <option value="DANGEROUS">DANGEROUS</option>
+                </select>
+              </div>
+
+              <div>
+                <input type="text" id="tableSearchMaster" class="search-input-field" placeholder="Cari Nama POP / OLT / ID..." onkeyup="applyMasterFilters()" style="width: 240px;" />
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>REGIONAL KP</th>
+                    <th>KATEGORI</th>
+                    <th>ID POP</th>
+                    <th>NAMA POP</th>
+                    <th>HOSTNAME OLT</th>
+                    <th style="text-align: center;">POWER SUPPLY</th>
+                    <th style="text-align: center;">AC</th>
+                    <th style="text-align: center;">GENSET</th>
+                    <th style="text-align: center;">PM POP</th>
+                    <th style="text-align: center;">HEALTH INDEX</th>
+                    <th style="text-align: center;">RESUME INDEX</th>
+                  </tr>
+                </thead>
+                <tbody id="tableMasterBody">
+                  <tr>
+                    <td colspan="11" style="text-align: center; padding: 24px; color: var(--muted);">Memuat data master POP...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- IFRAME HALAMAN LAIN -->
+        <div class="page" id="page-powersupply">
+          <iframe src="power-supply.html" class="embed-frame" frameborder="0"></iframe>
+        </div>
+        <div class="page" id="page-ac">
+          <iframe src="ac.html" class="embed-frame" frameborder="0"></iframe>
+        </div>
+        <div class="page" id="page-genset">
+          <iframe src="genset.html" class="embed-frame" frameborder="0"></iframe>
+        </div>
+        <div class="page" id="page-pm-pop">
+          <iframe src="pm-pop.html" class="embed-frame" frameborder="0"></iframe>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

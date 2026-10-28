@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PM POP RJBT - PLN Icon Plus</title>
+
+  <!-- FONT & ICONS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- STYLESHEET KHUSUS PM POP -->
+  <link rel="stylesheet" href="pm-pop.css" />
+</head>
+<body>
+
+  <!-- HEADER MODUL -->
+  <div class="ps-header">
+    <div>
+      <span class="ps-tag">PM POP RJBT 2026</span>
+      <h2>Data Preventif Maintenance POP</h2>
+      <p>Rekapitulasi pelaksanaan pemeliharaan berkala site POP SBU Regional Jawa Timur.</p>
+    </div>
+    <button class="btn-refresh" onclick="fetchPmPopData()">
+      <i class="fa-solid fa-arrows-rotate"></i> Refresh Data
+    </button>
+  </div>
+
+  <!-- KPI SUMMARY CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card-clickable active-card" id="cardALL" onclick="filterByCard('ALL')">
+      <span class="kpi-title">TOTAL SITE POP</span>
+      <div class="kpi-value" id="kpiTotalSite">874</div>
+      <span class="kpi-sub">Tersebar di 4 Regional KP</span>
+    </div>
+
+    <div class="kpi-card kpi-card-clickable" id="cardSELESAI" onclick="filterByCard('SELESAI')">
+      <span class="kpi-title">STATUS SELESAI</span>
+      <div class="kpi-value green" id="kpiSelesaiCount">558 Site</div>
+      <span class="kpi-sub green"><i class="fa-solid fa-circle-check"></i> PM Telah Dilaksanakan</span>
+    </div>
+
+    <div class="kpi-card kpi-card-clickable" id="cardBELUM" onclick="filterByCard('BELUM')">
+      <span class="kpi-title">STATUS BELUM</span>
+      <div class="kpi-value amber" id="kpiBelumCount">316 Site</div>
+      <span class="kpi-sub red" id="kpiBelumSub">Perlu Scheduling / Eksekusi</span>
+    </div>
+
+    <div class="kpi-card kpi-card-clickable" id="cardCATATAN" onclick="filterByCard('CATATAN')">
+      <span class="kpi-title">TEMUAN / CATATAN PM</span>
+      <div class="kpi-value amber" id="kpiCatatanCount">16 Site</div>
+      <span class="kpi-sub amber">Perlu Tindak Lanjut Perbaikan</span>
+    </div>
+  </div>
+
+  <!-- FILTER BOX -->
+  <div class="filter-box">
+    <input type="text" id="searchInput" placeholder="Cari ID POP, Nama POP, WO, Mitra..." onkeyup="filterData(true)" />
+    
+    <select id="filterKp" onchange="filterData(true)">
+      <option value="ALL">Semua Regional KP</option>
+      <option value="SURABAYA">KP SURABAYA</option>
+      <option value="MALANG">KP MALANG</option>
+      <option value="MADIUN">KP MADIUN</option>
+      <option value="JEMBER">KP JEMBER</option>
+    </select>
+
+    <select id="filterStatus" onchange="filterData(true)">
+      <option value="ALL">Semua Status PM</option>
+      <option value="SELESAI">SELESAI</option>
+      <option value="BELUM">BELUM</option>
+    </select>
+  </div>
+
+  <!-- TABEL CONTAINER DENGAN FREEZE COLUMNS & STICKY HEADER -->
+  <div class="table-container">
+    <table class="excel-table">
+      <thead>
+        <tr>
+          <th class="sticky-col-1">No</th>
+          <th class="sticky-col-2">POP ID</th>
+          <th>Nama POP</th>
+          <th>Regional KP</th>
+          <th>Kategori</th>
+          <th>Mitra Servo</th>
+          <th>Progres Tahap</th>
+          <th style="text-align: center;">Status PM</th>
+          <th>Nomor WO</th>
+          <th style="text-align: center;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="10" style="text-align: center; padding: 20px; color: #64748b;">
+            Memuat data PM POP...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINASI TABEL -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      <span>Tampilkan</span>
+      <select id="rowsPerPageSelect" onchange="changeRowsPerPage(this.value)">
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+      <span id="pageRangeInfo">1 - 10 dari 874 data</span>
+    </div>
+
+    <div class="pagination-controls">
+      <button class="btn-page" id="btnPrevPage" onclick="prevPage()">&laquo; Previous</button>
+      <div class="page-numbers" id="pageNumbers"></div>
+      <button class="btn-page" id="btnNextPage" onclick="nextPage()">Next &raquo;</button>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL PM POP -->
+  <div class="modal-overlay hidden" id="detailModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="mPopId">POP_1SBY003</h3>
+          <p id="mPopName">POP INTILAND LT.5 (SURABAYA)</p>
+        </div>
+        <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+      </div>
+
+      <div class="modal-body" style="margin-top: 14px; max-height: 72vh; overflow-y: auto;">
+        
+        <!-- INFORMASI SITE -->
+        <div class="info-box" style="margin-bottom: 14px;">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <div><strong>Regional KP:</strong> <span id="mKp">-</span></div>
+            <div><strong>Wilayah:</strong> <span id="mWilayah">-</span></div>
+            <div><strong>Kategori:</strong> <span id="mKategori">-</span></div>
+            <div><strong>Titik Koordinat:</strong> <span id="mTikor">-</span></div>
+            <div style="grid-column: span 2;"><strong>PIC PM Servo:</strong> <span id="mPicServo">-</span></div>
+          </div>
+        </div>
+
+        <!-- FORM LOG TAHAP PELAKSANAAN PM (4 TAHAP) -->
+        <h4 style="margin: 12px 0 6px 0; font-size: 0.85rem; color: #005b94;">Jadwal & Realisasi Pelaksanaan PM</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;">
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Tahap 1</label>
+            <input type="date" id="mTahap1" class="modal-input-date" onchange="autoSaveData()" />
+        </div>
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Tahap 2</label>
+            <input type="date" id="mTahap2" class="modal-input-date" onchange="autoSaveData()" />
+        </div>
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Tahap 3</label>
+            <input type="date" id="mTahap3" class="modal-input-date" onchange="autoSaveData()" />
+        </div>
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Tahap 4</label>
+            <input type="date" id="mTahap4" class="modal-input-date" onchange="autoSaveData()" />
+        </div>
+        </div>
+
+        <!-- PELAKSANA & STATUS -->
+        <h4 style="margin: 12px 0 6px 0; font-size: 0.85rem; color: #005b94;">Pelaksana & Status PM</h4>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px;">
+          <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Mitra / PT Servo</label>
+            <select id="mMitra" class="modal-select" onchange="autoSaveData()">
+              <option value="">-- Pilih Mitra --</option>
+              <option value="ADYWIANSA">ADYWIANSA</option>
+              <option value="ALMAHYRA DIAN KURNIA">ALMAHYRA DIAN KURNIA</option>
+              <option value="CIPTA KARYA TEKNOLOGI">CIPTA KARYA TEKNOLOGI</option>
+              <option value="GERBANG SINERGI PRIMA">GERBANG SINERGI PRIMA</option>
+              <option value="INFRATECH">INFRATECH</option>
+              <option value="INTERNAL KP JEMBER">INTERNAL KP JEMBER</option>
+              <option value="INTERNAL KP MADIUN">INTERNAL KP MADIUN</option>
+              <option value="INTERNAL KP MALANG">INTERNAL KP MALANG</option>
+              <option value="INTERNAL KP SURABAYA">INTERNAL KP SURABAYA</option>
+              <option value="TRI PUTRA TRANSINDO">TRI PUTRA TRANSINDO</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Status Pelaksanaan PM</label>
+            <select id="mStatusPm" class="modal-select" onchange="autoSaveData()">
+              <option value="SELESAI">SELESAI</option>
+              <option value="BELUM">BELUM</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- NOMOR WORK ORDER (WO) DIPERLEBAR AGAR KELIATAN SEMUA -->
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Nomor Work Order (WO)</label>
+          <input type="text" id="mNomorWo" class="modal-select" style="font-weight: 600;" placeholder="Tulis Nomor WO (bisa lebih dari satu)..." onchange="autoSaveData()" />
+        </div>
+
+        <!-- DOKUMEN BERITA ACARA (BA TAHAP 1 - 4) -->
+        <h4 style="margin: 14px 0 6px 0; font-size: 0.85rem; color: #005b94;">Dokumen Berita Acara (BA)</h4>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px;">
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Link BA Tahap 1</label>
+            <input type="text" id="mLinkBaTahap1" class="modal-select" placeholder="Paste link SharePoint Tahap 1..." onchange="updateBaPreviewAndSave()" />
+            <div id="baContainer1" style="margin-top: 6px;"></div>
+        </div>
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Link BA Tahap 2</label>
+            <input type="text" id="mLinkBaTahap2" class="modal-select" placeholder="Paste link SharePoint Tahap 2..." onchange="updateBaPreviewAndSave()" />
+            <div id="baContainer2" style="margin-top: 6px;"></div>
+        </div>
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Link BA Tahap 3</label>
+            <input type="text" id="mLinkBaTahap3" class="modal-select" placeholder="Paste link SharePoint Tahap 3..." onchange="updateBaPreviewAndSave()" />
+            <div id="baContainer3" style="margin-top: 6px;"></div>
+        </div>
+        <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Link BA Tahap 4</label>
+            <input type="text" id="mLinkBaTahap4" class="modal-select" placeholder="Paste link SharePoint Tahap 4..." onchange="updateBaPreviewAndSave()" />
+            <div id="baContainer4" style="margin-top: 6px;"></div>
+        </div>
+        </div>
+
+        <!-- CATATAN PM -->
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.72rem; font-weight: 700; color: #475569;">Catatan Hasil PM / Temuan Kendala</label>
+          <textarea id="mCatatanPm" class="modal-select" rows="3" placeholder="Tuliskan temuan atau catatan pemeliharaan..." onchange="autoSaveData()"></textarea>
+        </div>
+
+        <!-- INDIKATOR AUTO SAVE -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <span id="autoSaveStatus" style="font-size: 0.75rem; font-weight: 700;"></span>
+          <button class="btn-sec" onclick="closeDetailModal()">Tutup</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="pm-pop.js"></script>
+</body>
+</html>

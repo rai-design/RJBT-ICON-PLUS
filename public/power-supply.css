@@ -1,0 +1,528 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* FIX SELECTOR ASTERISK (*) UNTUK BOX SIZING KONSISTEN */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  margin: 0;
+  padding: 25px; /* Disamakan 25px agar sejajar 100% dengan Dashboard & Topbar Search */
+}
+
+/* Header Modul */
+.ps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ps-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.ps-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 4px 0 2px 0;
+  color: #1e293b;
+}
+
+.ps-header p {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.btn-refresh {
+  background: #005b94;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-refresh:hover {
+  background: #00426d;
+}
+
+/* KPI Summary Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.kpi-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 4px;
+}
+
+.kpi-value.green { color: #16a34a; }
+.kpi-value.amber { color: #d97706; }
+
+.kpi-sub {
+  font-size: 11px;
+  color: #64748b;
+  display: block;
+  margin-top: 2px;
+}
+
+.kpi-sub.red { color: #dc2626; }
+
+/* Styling Interaktif untuk KPI Card */
+.kpi-card-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+}
+
+.kpi-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #005b94;
+}
+
+/* Tampilan visual saat Card aktif terfilter (Highlighter Biru Konsisten) */
+.kpi-card-clickable.active-card,
+.kpi-card.active-card {
+  border: 2px solid #005b94 !important;
+  background: #f0f9ff !important;
+  box-shadow: 0 4px 12px rgba(0, 91, 148, 0.15) !important;
+}
+
+/* Filter Box Layout Fix */
+.filter-box {
+  display: flex;
+  gap: 12px;
+  background: #ffffff;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.filter-box input {
+  width: 320px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  outline: none;
+  background: #ffffff;
+  color: #1e293b;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filter-box input:focus,
+.filter-box select:focus {
+  border-color: #005b94;
+  box-shadow: 0 0 0 3px rgba(0, 91, 148, 0.15);
+}
+
+.filter-box select {
+  width: 220px;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  outline: none;
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+/* ==========================================================
+   TABLE CONTAINER DENGAN FREEZE COLUMNS & STICKY HEADER
+   ========================================================== */
+.table-container {
+  min-height: 460px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* KUNCI LAYOUT TABEL DAN LEBAR KOLOM */
+.excel-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.76rem;
+  text-align: left;
+}
+
+/* Penentuan Lebar Pasti Tiap Kolom */
+.excel-table th:nth-child(1) { width: 50px; }  /* No */
+.excel-table th:nth-child(2) { width: 160px; } /* ID POP */
+.excel-table th:nth-child(3) { width: 30%; }   /* Lokasi */
+.excel-table th:nth-child(4) { width: 120px; } /* Area */
+.excel-table th:nth-child(5) { width: 100px; } /* Kategori */
+.excel-table th:nth-child(6) { width: 100px; } /* Model */
+.excel-table th:nth-child(7) { width: 180px; } /* Health Index Power Supply */
+.excel-table th:nth-child(8) { width: 90px; }  /* Aksi */
+
+/* Tinggi per baris yang konsisten */
+.excel-table tbody tr {
+  height: 42px;
+}
+
+/* Sticky Table Header */
+.excel-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-bottom: 2px solid #cbd5e1;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.excel-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: #ffffff;
+}
+
+.excel-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* ----------------------------------------------------------
+   FREEZE COLUMNS (Kunci Kolom No dan ID POP di Kiri)
+   ---------------------------------------------------------- */
+.excel-table th.sticky-col-1,
+.excel-table td.sticky-col-1 {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  width: 50px;
+}
+
+.excel-table th.sticky-col-2,
+.excel-table td.sticky-col-2 {
+  position: sticky;
+  left: 50px;
+  z-index: 10;
+  border-right: 2px solid #cbd5e1;
+  width: 160px;
+}
+
+.excel-table thead th.sticky-col-1,
+.excel-table thead th.sticky-col-2 {
+  z-index: 30;
+  background: #e2e8f0;
+}
+
+.excel-table tr:hover td.sticky-col-1,
+.excel-table tr:hover td.sticky-col-2 {
+  background: #f1f5f9;
+}
+
+/* Badges & Buttons */
+.badge-status {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
+.badge-green { background: #dcfce7; color: #15803d; }
+.badge-red { background: #fee2e2; color: #b91c1c; }
+.badge-blue { background: #e0f2fe; color: #0369a1; }
+
+.btn-detail {
+  padding: 4px 10px;
+  background: #ffffff;
+  border: 1px solid #005b94;
+  color: #005b94;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.btn-detail:hover {
+  background: #f0f9ff;
+}
+
+/* Styling Paginasi Tabel */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  font-size: 0.8rem;
+  color: #475569;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-info select {
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  background: #ffffff;
+  outline: none;
+  cursor: pointer;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-page {
+  padding: 5px 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: #005b94;
+  color: #ffffff;
+  border-color: #005b94;
+}
+
+.btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-page-num {
+  padding: 4px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-page-num.active {
+  background: #005b94;
+  color: #ffffff;
+  border-color: #005b94;
+}
+
+/* Modal Detail & Form Edit */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.modal-header h3 { margin: 0; font-size: 1.1rem; }
+.modal-header p { margin: 2px 0 0 0; font-size: 0.8rem; color: #64748b; }
+.modal-close { background: transparent; border: none; font-size: 1.4rem; cursor: pointer; }
+
+.info-box {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.78rem;
+}
+
+.modal-select,
+.modal-input-date {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  margin-top: 4px;
+  outline: none;
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-select:focus,
+.modal-input-date:focus {
+  border-color: #005b94;
+  box-shadow: 0 0 0 2px rgba(0, 91, 148, 0.15);
+}
+
+.modal-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-sec {
+  background: #e2e8f0;
+  color: #334155;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-sec:hover {
+  background: #cbd5e1;
+}
+
+/* DARK MODE SUPPORT UNTUK HALAMAN POWER SUPPLY */
+body.dark {
+  background-color: #070D18 !important;
+  color: #f8fafc !important;
+}
+
+body.dark .ps-header h2 { color: #f8fafc !important; }
+body.dark .ps-header p { color: #94a3b8 !important; }
+
+body.dark .kpi-card,
+body.dark .filter-box,
+body.dark .table-container,
+body.dark .pagination-container,
+body.dark .modal-card {
+  background: #111E36 !important;
+  border-color: #1E2D4A !important;
+  color: #f8fafc !important;
+}
+
+body.dark .kpi-value { color: #f8fafc !important; }
+body.dark .kpi-title, body.dark .kpi-sub { color: #94a3b8 !important; }
+
+/* Support Card Aktif di Dark Mode */
+body.dark .kpi-card-clickable.active-card,
+body.dark .kpi-card.active-card {
+  border: 2px solid #38bdf8 !important;
+  background: #0c4a6e !important;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2) !important;
+}
+
+body.dark .filter-box input,
+body.dark .filter-box select,
+body.dark .pagination-info select,
+body.dark .btn-page,
+body.dark .btn-page-num {
+  background: #172D4D !important;
+  color: #f8fafc !important;
+  border-color: #1E2D4A !important;
+}
+
+body.dark .excel-table thead th {
+  background: #0B1220 !important;
+  color: #cbd5e1 !important;
+  border-color: #1E2D4A !important;
+}
+
+body.dark .excel-table td {
+  background: #111E36 !important;
+  color: #f8fafc !important;
+  border-color: #1E2D4A !important;
+}
+
+body.dark .excel-table tr:hover td {
+  background: #172D4D !important;
+}
+
+body.dark .excel-table th.sticky-col-1,
+body.dark .excel-table td.sticky-col-1,
+body.dark .excel-table th.sticky-col-2,
+body.dark .excel-table td.sticky-col-2 {
+  background: #111E36 !important;
+  border-color: #1E2D4A !important;
+}
+
+body.dark .excel-table thead th.sticky-col-1,
+body.dark .excel-table thead th.sticky-col-2 {
+  background: #0B1220 !important;
+}

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PM POWERSUPPLY RJBT1</title>
+  <link rel="stylesheet" href="power-supply.css" />
+</head>
+<body>
+
+  <!-- HEADER MODUL -->
+  <div class="ps-header">
+    <div>
+      <span class="ps-tag">PM POWERSUPPLY RJBT1</span>
+      <h2>Data Preventif Maintenance Power Supply</h2>
+      <p>Rekapitulasi data sistem rectifier, kapasitas baterai, dan health index.</p>
+    </div>
+    <div class="ps-actions">
+      <button onclick="fetchPowerSupplyData()" class="btn-refresh">Refresh Data</button>
+    </div>
+  </div>
+
+  <!-- KPI SUMMARY CARDS (INTERAKTIF & BISA DIKLIK) -->
+  <div class="kpi-grid">
+    <div id="cardALL" class="kpi-card kpi-card-clickable active-card" onclick="filterByCard('ALL')">
+      <span class="kpi-title">TOTAL POWER SUPPLY</span>
+      <div id="kpiTotalSite" class="kpi-value">-</div>
+      <span class="kpi-sub">Klik untuk tampilkan semua site</span>
+    </div>
+
+    <div id="cardHI_WARNING" class="kpi-card kpi-card-clickable" onclick="filterByCard('HI_WARNING')">
+      <span class="kpi-title">RATA-RATA HEALTH INDEX</span>
+      <div id="kpiAvgHi" class="kpi-value green">-</div>
+      <span class="kpi-sub red">Klik untuk filter HI &lt; 100%</span>
+    </div>
+
+    <div id="cardBELUM_N1" class="kpi-card kpi-card-clickable" onclick="filterByCard('BELUM_N1')">
+      <span class="kpi-title">REDUNDANSI RECTIFIER</span>
+      <div id="kpiN1Count" class="kpi-value amber">-</div>
+      <span id="kpiBelumN1Sub" class="kpi-sub red">-</span>
+    </div>
+
+    <div id="cardKURANG_8JAM" class="kpi-card kpi-card-clickable" onclick="filterByCard('KURANG_8JAM')">
+      <span class="kpi-title">KEMAMPUAN BACKUP BATERAI</span>
+      <div id="kpiBackup8Jam" class="kpi-value">-</div>
+      <span id="kpiKurang8JamSub" class="kpi-sub red">-</span>
+    </div>
+  </div>
+
+  <!-- FILTER & SEARCH BAR -->
+  <!-- Filter Box -->
+<div class="filter-box">
+  <input type="text" id="searchInput" placeholder="Cari ID POP, Lokasi, Model..." onkeyup="applyFilters()" />
+  
+  <select id="filterKp" onchange="applyFilters()">
+    <option value="ALL">Semua Regional KP</option>
+    <option value="SURABAYA">KP SURABAYA</option>
+    <option value="MALANG">KP MALANG</option>
+    <option value="MADIUN">KP MADIUN</option>
+    <option value="JEMBER">KP JEMBER</option>
+  </select>
+</div>
+
+  <!-- TABEL INTERAKTIF RINGKAS -->
+  <div class="table-container">
+    <table class="excel-table">
+      <thead>
+        <tr>
+          <th class="sticky-col-1">No</th>
+          <th class="sticky-col-2">ID POP</th>
+          <th>Lokasi</th>
+          <th>Area</th>
+          <th>Kategori</th>
+          <th>Model</th>
+          <th>Health Index Power Supply</th>
+          <th style="text-align: center;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 20px; color: #64748b;">
+            Memuat data PM Power Supply...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINASI TABEL -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      <span>Tampilkan</span>
+      <select id="rowsPerPageSelect" onchange="changeRowsPerPage(this.value)">
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+      <span>data per halaman | <strong id="pageRangeInfo">0 - 0 dari 0 data</strong></span>
+    </div>
+
+    <div class="pagination-controls">
+      <button id="btnPrevPage" onclick="prevPage()" class="btn-page" disabled>&laquo; Previous</button>
+      <span id="pageNumbers" class="page-numbers"></span>
+      <button id="btnNextPage" onclick="nextPage()" class="btn-page" disabled>Next &raquo;</button>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL & EDIT DATA -->
+  <div id="detailModal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 850px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <div>
+          <h3 id="mPopId" style="color: #005b94; margin: 0;">-</h3>
+          <p id="mLokasi" style="color: #64748b; margin: 2px 0 0 0; font-size: 0.8rem;">-</p>
+        </div>
+        <button type="button" onclick="closeDetailModal()" class="modal-close">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px; margin-top: 12px;">
+        
+        <!-- KELOMPOK 1: DATA SISTEM RECTIFIER (RECTIFIER 1 & RECTIFIER 2) -->
+        <div class="info-box">
+          <strong style="color: #005b94; display: block; margin-bottom: 12px; font-size: 0.9rem;">Data Sistem Rectifier</strong>
+          
+          <!-- SUB-SEKSI: RECTIFIER 1 -->
+          <div style="background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 12px;">
+            <span style="font-weight: 700; color: #0284c7; display: block; margin-bottom: 8px;">Rectifier 1</span>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
+              <div>
+                <label><strong>Rectifier Brand 1:</strong></label>
+                <input type="text" id="mRectiBrand1" class="modal-select" list="listRectiBrand" oninput="autoSaveData()" placeholder="Pilih / Ketik Merk..." />
+              </div>
+              <div>
+                <label><strong>Kap. Total Modul Recti 1 (A):</strong></label>
+                <input type="number" id="mKapTotalRecti1" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+              </div>
+              <div>
+                <label><strong>Tipe Modul Recti 1:</strong></label>
+                <input type="text" id="mTipeModulRecti1" class="modal-select" list="listTipeModul" oninput="autoSaveData()" placeholder="Pilih / Ketik Tipe..." />
+              </div>
+              <div>
+                <label><strong>Status Modul Recti 1:</strong></label>
+                <select id="mStatusModulRecti1" class="modal-select" onchange="autoSaveData()">
+                  <option value="">- Pilih Status -</option>
+                  <option value="N+1">N+1</option>
+                  <option value="Lebih dari N+1">Lebih dari N+1</option>
+                  <option value="Belum N+1">Belum N+1</option>
+                  <option value="2 ON - STANDBY OFF">2 ON - STANDBY OFF</option>
+                  <option value="OLT Gantung">OLT Gantung</option>
+                </select>
+              </div>
+              <div>
+                <label><strong>Modul Recti 1 (Unit):</strong></label>
+                <input type="number" id="mModulRecti1Unit" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+              </div>
+              <div>
+                <label><strong>Beban Recti 1 (A):</strong></label>
+                <input type="number" step="0.1" id="mBebanRectiA" class="modal-select" oninput="autoSaveData()" placeholder="0.0" />
+              </div>
+              <div style="grid-column: span 2;">
+                <label><strong>Kap. Tiap Modul Recti 1 (A DC):</strong></label>
+                <input type="number" id="mKapTiapModul1" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-SEKSI: RECTIFIER 2 (OPSIONAL) -->
+          <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px dashed #94a3b8;">
+            <span style="font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Rectifier 2 <small style="font-weight: 400; color: #64748b;">(Terisi otomatis jika ada)</small></span>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
+              <div>
+                <label><strong>Rectifier Brand 2:</strong></label>
+                <input type="text" id="mRectiBrand2" class="modal-select" list="listRectiBrand" oninput="autoSaveData()" placeholder="Kosong jika tidak ada..." />
+              </div>
+              <div>
+                <label><strong>Kap. Total Modul Recti 2 (A):</strong></label>
+                <input type="number" id="mKapTotalRecti2" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+              </div>
+              <div>
+                <label><strong>Tipe Modul Recti 2:</strong></label>
+                <input type="text" id="mTipeModulRecti2" class="modal-select" list="listTipeModul" oninput="autoSaveData()" placeholder="Kosong..." />
+              </div>
+              <div>
+                <label><strong>Status Modul Recti 2:</strong></label>
+                <select id="mStatusModulRecti2" class="modal-select" onchange="autoSaveData()">
+                  <option value="">- Kosong -</option>
+                  <option value="N+1">N+1</option>
+                  <option value="Lebih dari N+1">Lebih dari N+1</option>
+                  <option value="Belum N+1">Belum N+1</option>
+                  <option value="2 ON - STANDBY OFF">2 ON - STANDBY OFF</option>
+                  <option value="OLT Gantung">OLT Gantung</option>
+                </select>
+              </div>
+              <div>
+                <label><strong>Modul Recti 2 (Unit):</strong></label>
+                <input type="number" id="mModulRecti2Unit" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+              </div>
+              <div>
+                <label><strong>Beban Recti 2 (A):</strong></label>
+                <input type="number" step="0.1" id="mBebanRectiA2" class="modal-select" oninput="autoSaveData()" placeholder="0.0" />
+              </div>
+              <div style="grid-column: span 2;">
+                <label><strong>Kap. Tiap Modul Recti 2 (A DC):</strong></label>
+                <input type="number" id="mKapTiapModul2" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- DATALIST PILIHAN MERK & TIPE -->
+          <datalist id="listRectiBrand">
+            <option value="AEG"></option>
+            <option value="Alpha 1U"></option>
+            <option value="EATON"></option>
+            <option value="ELTEK SMARTPACK 2"></option>
+            <option value="Emerson 501 A51"></option>
+            <option value="Huawei"></option>
+            <option value="VERTIV 2100 A31-S3"></option>
+          </datalist>
+          <datalist id="listTipeModul">
+            <option value="Flatpack2 HE 48V/2000W"></option>
+            <option value="R48-2000e3"></option>
+            <option value="R4830G"></option>
+            <option value="SM2000"></option>
+          </datalist>
+        </div>
+
+        <!-- KELOMPOK 2: DATA SISTEM BATERAI -->
+        <div class="info-box">
+          <strong style="color: #005b94; display: block; margin-bottom: 10px;">Data Sistem Baterai</strong>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
+            <div>
+              <label><strong>Merk Batt:</strong></label>
+              <input type="text" id="mMerkBatt" class="modal-select" list="listMerkBatt" oninput="autoSaveData()" placeholder="Pilih / Ketik Merk Baterai..." />
+              <datalist id="listMerkBatt">
+                <option value="Huawei"></option>
+                <option value="Leoch"></option>
+                <option value="Narada"></option>
+                <option value="Nippress"></option>
+                <option value="Shoto"></option>
+                <option value="Sinelith"></option>
+              </datalist>
+            </div>
+            <div>
+              <label><strong>Jml Batt:</strong></label>
+              <select id="mJmlBatt" class="modal-select" onchange="autoSaveData()">
+                <option value="">- Pilih Jumlah -</option>
+                <option value="1x100AH">1x100AH</option>
+                <option value="2x100AH">2x100AH</option>
+                <option value="3x100AH">3x100AH</option>
+                <option value="4x100AH">4x100AH</option>
+                <option value="5x100AH">5x100AH</option>
+                <option value="6x100AH">6x100AH</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Tipe Batt:</strong></label>
+              <input type="text" id="mTipeBatt" class="modal-select" oninput="autoSaveData()" placeholder="Ketik Tipe Baterai..." />
+            </div>
+            <div>
+              <label><strong>Kap. Batt (AH):</strong></label>
+              <input type="number" id="mKapBattAh" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+            </div>
+            <div>
+              <label><strong>Jenis Batt:</strong></label>
+              <select id="mJenisBatt" class="modal-select" onchange="autoSaveData()">
+                <option value="">- Pilih Jenis -</option>
+                <option value="Lithium">Lithium</option>
+                <option value="VRLA">VRLA</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Kemampuan (Jam):</strong></label>
+              <input type="number" step="0.01" id="mKemampuanJam" class="modal-select" oninput="autoSaveData()" placeholder="0.00" />
+            </div>
+            <div>
+              <label><strong>Status Umur Batt:</strong></label>
+              <select id="mStatusUmurBatt" class="modal-select" onchange="autoSaveData()">
+                <option value="">- Pilih Status -</option>
+                <option value="<= 1 TAHUN">&lt;= 1 TAHUN</option>
+                <option value="DIATAS 1 TAHUN">DIATAS 1 TAHUN</option>
+                <option value="DIATAS 2 TAHUN">DIATAS 2 TAHUN</option>
+                <option value="DIATAS 3 TAHUN">DIATAS 3 TAHUN</option>
+                <option value="DIATAS 4 TAHUN">DIATAS 4 TAHUN</option>
+                <option value="DIATAS 5 TAHUN">DIATAS 5 TAHUN</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Status Kemampuan:</strong></label>
+              <select id="mStatusKemampuan" class="modal-select" onchange="autoSaveData()">
+                <option value="">- Pilih Status -</option>
+                <option value="DIATAS 8JAM">DIATAS 8JAM</option>
+                <option value="KURANG 8JAM">KURANG 8JAM</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- KELOMPOK 3: KEBUTUHAN & EVALUASI MAINTENANCE -->
+        <div class="info-box">
+          <strong style="color: #005b94; display: block; margin-bottom: 10px;">Kebutuhan & Evaluasi Maintenance</strong>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
+            <div>
+              <label><strong>Insert Date:</strong></label>
+              <input type="date" id="mInsertDate" class="modal-input-date" onchange="autoSaveData()" />
+            </div>
+            <div>
+              <label><strong>Prioritas Batt:</strong></label>
+              <select id="mPrioritasBatt" class="modal-select" onchange="autoSaveData()">
+                <option value="">- Pilih Prioritas -</option>
+                <option value="KURANG 8JAM">KURANG 8JAM</option>
+                <option value="OLD LITHIUM">OLD LITHIUM</option>
+                <option value="UMUR > 3TAHUN">UMUR &gt; 3TAHUN</option>
+                <option value="VRLA">VRLA</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Butuh Recti:</strong></label>
+              <input type="text" id="mButuhRecti" class="modal-select" oninput="autoSaveData()" placeholder="Kebutuhan Slot..." />
+            </div>
+            <div>
+              <label><strong>STATUS:</strong></label>
+              <input type="text" id="mStatusMaster" class="modal-select" oninput="autoSaveData()" placeholder="Status Evaluasi..." />
+            </div>
+            <div>
+              <label><strong>Butuh +Batt (AH):</strong></label>
+              <input type="number" id="mButuhPlusBattAh" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+            </div>
+            <div>
+              <label><strong>Health Index Power Supply (%):</strong></label>
+              <input type="number" min="0" max="100" id="mHealthIndexPs" class="modal-select" oninput="autoSaveData()" placeholder="100" />
+            </div>
+          </div>
+        </div>
+
+        <!-- KELOMPOK 4: STATUS PENGUJIAN DUMMY LOAD -->
+        <div class="info-box">
+          <strong style="color: #005b94; display: block; margin-bottom: 10px;">Status Pengujian Dummy Load</strong>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
+            <div>
+              <label><strong>Butuh Dummy (2025):</strong></label>
+              <select id="mButuhDummy2025" class="modal-select" onchange="autoSaveData()">
+                <option value="">- Pilih -</option>
+                <option value="YES">YES</option>
+                <option value="NO">NO</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>DONE DUMMY:</strong></label>
+              <select id="mDoneDummy" class="modal-select" onchange="autoSaveData()">
+                <option value="">- Pilih -</option>
+                <option value="TRUE">TRUE</option>
+                <option value="FALSE">FALSE</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Last Dummy:</strong></label>
+              <input type="text" id="mLastDummy" class="modal-select" oninput="autoSaveData()" placeholder="Keterangan Last Dummy..." />
+            </div>
+            <div>
+              <label><strong>Jumlah Batt (Bank):</strong></label>
+              <input type="number" id="mJumlahBattBank" class="modal-select" oninput="autoSaveData()" placeholder="0" />
+            </div>
+            <div>
+              <label><strong>Tanggal Dummy 2025:</strong></label>
+              <input type="date" id="mTanggalDummy2025" class="modal-input-date" onchange="autoSaveData()" />
+            </div>
+            <div>
+              <label><strong>Kap. Batt After Dummy (AH):</strong></label>
+              <input type="number" step="0.1" id="mKapBattAfterDummy" class="modal-select" oninput="autoSaveData()" placeholder="0.0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- KELOMPOK 5: TEGANGAN, KONDISI FISIK & ALARM -->
+        <div class="info-box">
+          <strong style="color: #005b94; display: block; margin-bottom: 10px;">Tegangan & Kondisi Fisik Site</strong>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
+            <div>
+              <label><strong>Tegangan PLN:</strong></label>
+              <select id="mTeganganPln" class="modal-select" onchange="autoSaveData()">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+                <option value="DROP">DROP</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Kondisi Fisik Battery/Recti:</strong></label>
+              <select id="mKondisiFisik" class="modal-select" onchange="autoSaveData()">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Tegangan Battery:</strong></label>
+              <select id="mTeganganBattery" class="modal-select" onchange="autoSaveData()">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>External Alarm:</strong></label>
+              <select id="mExternalAlarm" class="modal-select" onchange="autoSaveData()">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <span id="autoSaveStatus" style="font-size: 0.75rem; color: #16a34a; font-weight: 600;"></span>
+        <button type="button" onclick="closeDetailModal()" class="btn-sec">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="power-supply.js"></script>
+</body>
+</html>
