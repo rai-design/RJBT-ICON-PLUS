@@ -1,13 +1,67 @@
 // ==========================================================
-// ELEMEN UTAMA DASHBOARD & EVENT LISTENERS
+// 0. GLOBAL FETCH HELPER & LOGOUT MODAL HANDLER
+// ==========================================================
+async function fetchWithAuth(url, options = {}) {
+  try {
+    const response = await fetch(url, options);
+
+    // Jika sesi di server habis (misal server restart / cookie expired)
+    if (response.status === 401) {
+      localStorage.removeItem('user_session');
+      alert('Sesi Anda telah berakhir. Silakan login kembali.');
+      window.location.replace('/login.html');
+      return null;
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Fetch Error:', error);
+    throw error;
+  }
+}
+
+// Buka Modal Pop-up Logout Kustom
+function handleLogout() {
+  const modal = document.getElementById('logoutModal');
+  if (modal) modal.classList.add('active');
+}
+
+// Tutup Modal Pop-up Logout
+function closeLogoutModal() {
+  const modal = document.getElementById('logoutModal');
+  if (modal) modal.classList.remove('active');
+}
+
+// Eksekusi Logout saat Klik "Ya, Keluar" di Modal
+async function confirmLogout() {
+  const btn = document.querySelector('.btn-confirm-logout');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Proses...';
+  }
+
+  try {
+    // Panggil endpoint logout server untuk menghapus sesi & cookie
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (err) {
+    console.error('Logout server error:', err);
+  } finally {
+    localStorage.removeItem('user_session');
+    window.location.replace('/login.html');
+  }
+}
+
+// ==========================================================
+// 1. ELEMEN UTAMA DASHBOARD & EVENT LISTENERS
 // ==========================================================
 const monitoringToggle = document.getElementById("monitoringToggle");
 const monitoringSubmenu = document.getElementById("monitoringSubmenu");
 const monitoringChevron = document.getElementById("monitoringChevron");
 const mobileMenu = document.getElementById("mobileMenu");
 const sidebar = document.getElementById("sidebar");
-const searchInput = document.getElementById("searchInput");
+const topbarSearchInput = document.getElementById("searchInput");
 
+// Toggle Submenu Monitoring Perangkat
 if (monitoringToggle) {
   monitoringToggle.addEventListener("click", () => {
     if (monitoringSubmenu) monitoringSubmenu.classList.toggle("open");
@@ -15,12 +69,13 @@ if (monitoringToggle) {
   });
 }
 
-// Navigasi Halaman Utama
+// Navigasi Halaman Utama (Dashboard & Embed Iframe)
 const navLinks = document.querySelectorAll("[data-page]");
 navLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
     const pageName = link.dataset.page;
+
     navLinks.forEach((item) => item.classList.remove("active"));
     link.classList.add("active");
 
@@ -37,11 +92,36 @@ navLinks.forEach((link) => {
   });
 });
 
+// Mobile Sidebar Toggle
 if (mobileMenu && sidebar) {
   mobileMenu.addEventListener("click", () => sidebar.classList.toggle("mobile-open"));
 }
 
-// Jam Realtime
+// Shortcut Keyboard (CTRL + K untuk Fokus ke Input Search Topbar)
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    if (topbarSearchInput) {
+      topbarSearchInput.focus();
+      topbarSearchInput.select();
+    }
+  }
+});
+
+// Sinkronkan Pencarian Topbar dengan Filter Tabel Master
+if (topbarSearchInput) {
+  topbarSearchInput.addEventListener("keyup", () => {
+    const tableSearchMaster = document.getElementById("tableSearchMaster");
+    if (tableSearchMaster) {
+      tableSearchMaster.value = topbarSearchInput.value;
+    }
+    applyMasterFilters();
+  });
+}
+
+// ==========================================================
+// 2. JAM REALTIME (WIB / ASIA/JAKARTA)
+// ==========================================================
 function updateClock() {
   const now = new Date();
   const dateEl = document.getElementById("date");
@@ -49,12 +129,19 @@ function updateClock() {
 
   if (dateEl) {
     dateEl.textContent = now.toLocaleDateString("id-ID", {
-      day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Jakarta"
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Asia/Jakarta"
     }).toUpperCase();
   }
   if (timeEl) {
     timeEl.textContent = now.toLocaleTimeString("id-ID", {
-      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "Asia/Jakarta"
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Jakarta"
     });
   }
 }
@@ -62,7 +149,7 @@ updateClock();
 setInterval(updateClock, 1000);
 
 // ==========================================================
-// DATA KONSOLIDASI DATA MASTER SHEET EXCEL (874 POP SBU RJBT)
+// 3. DATA KONSOLIDASI SHEET EXCEL (874 POP SBU RJBT)
 // ==========================================================
 const summaryKpData = [
   { kp: 'SURABAYA', totalPop: 313, avgHi: 83.63, good: 192, warning: 111, check: 2, dangerous: 8 },
@@ -71,7 +158,7 @@ const summaryKpData = [
   { kp: 'JEMBER', totalPop: 117, avgHi: 96.66, good: 103, warning: 14, check: 0, dangerous: 0 }
 ];
 
-// Sample dataset riil sesuai kolom DATA MASTER
+// Sample Dataset Riil Data Master POP
 const rawMasterData = [
   { kp: 'SURABAYA', kategori: 'POP-SB', idPop: 'POP_1SBY003', namaPop: 'POP_1SBY003_INTILAND LT.5', olt: 'NON - OLT', ps: '100', ac: '100', genset: 'TIDAK ADA', pmPop: 100, hi: 100, status: 'GOOD CONDITION' },
   { kp: 'SURABAYA', kategori: 'POP-SB', idPop: 'POP_1SDA002', namaPop: 'POP_1SDA002_WARU GI SHELTER-1 PLN', olt: 'NON - OLT', ps: '100', ac: '100', genset: '60', pmPop: 75, hi: 84, status: 'GOOD CONDITION' },
@@ -89,7 +176,7 @@ const rawMasterData = [
 ];
 
 // ==========================================================
-// RENDER TABEL & KPI
+// 4. RENDER TABEL & LOGIKA FILTER
 // ==========================================================
 function renderKpSummaryTable() {
   const tbody = document.getElementById('tableKpSummaryBody');
@@ -176,7 +263,12 @@ function renderMasterTable(data) {
 function applyMasterFilters() {
   const kpVal = document.getElementById('filterKp') ? document.getElementById('filterKp').value : 'ALL';
   const statusVal = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : 'ALL';
-  const searchVal = (document.getElementById('tableSearchMaster') ? document.getElementById('tableSearchMaster').value : '').toLowerCase();
+  
+  // Ambil pencarian baik dari filter tabel maupun searchbar topbar
+  const searchInputMaster = document.getElementById('tableSearchMaster');
+  const searchValMaster = searchInputMaster ? searchInputMaster.value.trim().toLowerCase() : '';
+  const topbarVal = topbarSearchInput ? topbarSearchInput.value.trim().toLowerCase() : '';
+  const searchVal = searchValMaster || topbarVal;
 
   const filtered = rawMasterData.filter(item => {
     const matchKp = (kpVal === 'ALL') || (item.kp === kpVal);

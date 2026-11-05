@@ -339,6 +339,113 @@ function setValue(id, val) {
   }
 }
 
+// Helper Visibilitas Tahap berdasarkan Kategori POP (POP-SB: 4, POP-B: 2, POP-A/POP-D: 1)
+function renderTahapByKategori(kategori) {
+  const kat = String(kategori || '').trim().toUpperCase();
+
+  let totalTahap = 1;
+  if (kat.includes('POP-SB')) {
+    totalTahap = 4;
+  } else if (kat.includes('POP-B')) {
+    totalTahap = 2;
+  } else {
+    totalTahap = 1; // POP-A, POP-D, dll.
+  }
+
+  for (let i = 1; i <= 4; i++) {
+    // Sembunyikan/Tampilkan Elemen Input Tanggal
+    const dateInput = document.getElementById(`mTahap${i}`);
+    const dateGroup = document.getElementById(`tahap${i}FieldGroup`) || (dateInput ? dateInput.closest('.form-group-tahap') || dateInput.parentElement : null);
+
+    // Sembunyikan/Tampilkan Elemen Input Link BA
+    const baInput = document.getElementById(`mLinkBaTahap${i}`);
+    const baGroup = document.getElementById(`baTahap${i}FieldGroup`) || (baInput ? baInput.closest('.ba-field-group') || baInput.parentElement : null);
+
+    // Sembunyikan/Tampilkan Elemen Preview Berkas BA
+    const baContainer = document.getElementById(`baContainer${i}`);
+
+    if (i <= totalTahap) {
+      if (dateGroup) dateGroup.style.display = '';
+      if (dateInput) dateInput.style.display = '';
+      if (baGroup) baGroup.style.display = '';
+      if (baContainer) baContainer.style.display = '';
+    } else {
+      if (dateGroup) dateGroup.style.display = 'none';
+      if (baGroup) baGroup.style.display = 'none';
+      if (baContainer) baContainer.style.display = 'none';
+    }
+  }
+
+  // Adjust Grid Layout jika container grid tersedia
+  const gridJadwal = document.getElementById('gridJadwalPM');
+  if (gridJadwal) {
+    gridJadwal.style.gridTemplateColumns = `repeat(${totalTahap}, 1fr)`;
+  }
+
+  const gridBa = document.getElementById('gridDokumenBA');
+  if (gridBa) {
+    gridBa.style.gridTemplateColumns = `repeat(${Math.min(totalTahap, 2)}, 1fr)`;
+  }
+}
+
+// Helper Hitung Otomatis Progres (%) & Status Pelaksanaan PM berdasarkan Kategori POP
+function calculatePmPopProgress() {
+  const kategori = (
+    document.getElementById('mKategori')?.textContent || ''
+  ).toUpperCase();
+
+  const t1 = document.getElementById('mTahap1')?.value;
+  const t2 = document.getElementById('mTahap2')?.value;
+  const t3 = document.getElementById('mTahap3')?.value;
+  const t4 = document.getElementById('mTahap4')?.value;
+
+  const hasT1 = Boolean(t1 && t1 !== '-' && t1 !== '');
+  const hasT2 = Boolean(t2 && t2 !== '-' && t2 !== '');
+  const hasT3 = Boolean(t3 && t3 !== '-' && t3 !== '');
+  const hasT4 = Boolean(t4 && t4 !== '-' && t4 !== '');
+
+  let target = 1;
+  let filledCount = 0;
+
+  if (kategori.includes('POP-SB')) {
+    target = 4;
+    filledCount = (hasT1 ? 1 : 0) + (hasT2 ? 1 : 0) + (hasT3 ? 1 : 0) + (hasT4 ? 1 : 0);
+  } else if (kategori.includes('POP-B')) {
+    target = 2;
+    filledCount = (hasT1 ? 1 : 0) + (hasT2 ? 1 : 0);
+  } else {
+    // POP-A, POP-D, dan kategori lainnya
+    target = 1;
+    filledCount = hasT1 ? 1 : 0;
+  }
+
+  const percent = Math.min(100, Math.round((filledCount / target) * 100));
+  const isSelesai = filledCount >= target;
+  const statusStr = isSelesai ? 'SELESAI' : 'BELUM';
+
+  // 1. Update Display Badge Progres PM (%)
+  const badgeElem = document.getElementById('mProgressDisplay');
+  if (badgeElem) {
+    badgeElem.textContent = `${percent}%`;
+    if (isSelesai) {
+      badgeElem.style.color = '#16a34a'; // Hijau
+    } else if (percent > 0) {
+      badgeElem.style.color = '#d97706'; // Amber / Kuning
+    } else {
+      badgeElem.style.color = '#dc2626'; // Merah
+    }
+  }
+
+  // 2. Update Input Status Pelaksanaan PM
+  const statusElem = document.getElementById('mStatusPm');
+  if (statusElem) {
+    statusElem.value = statusStr;
+    statusElem.style.color = isSelesai ? '#16a34a' : '#dc2626';
+  }
+
+  return { persentase: percent / 100, status: statusStr };
+}
+
 // Helper Render Tombol Link Berita Acara (BA) Seperti di Excel
 function renderBaLink(containerId, linkVal, labelTahap, popName = '') {
   const container = document.getElementById(containerId);
@@ -427,12 +534,16 @@ function openModal(index) {
   setTxt('mTikor', item.tikor);
   setTxt('mPicServo', item.picPmServo);
 
-  // Hanya mengisi tanggal Tahap 1 s.d. Tahap 4
+  // Sesuaikan Visibilitas Input Tanggal & BA berdasarkan Kategori POP (4 / 2 / 1 Tahap)
+  renderTahapByKategori(item.kategori);
+
+  // Set Tanggal Tahap PM 1 s.d. 4
   setValue('mTahap1', item.tahap1);
   setValue('mTahap2', item.tahap2);
   setValue('mTahap3', item.tahap3);
   setValue('mTahap4', item.tahap4);
 
+  // Set Pelaksana, Status, WO, Catatan
   setValue('mMitra', item.ptServo || item.mitra);
   setValue('mStatusPm', item.status || 'BELUM');
   setValue('mNomorWo', item.wo);
@@ -444,7 +555,10 @@ function openModal(index) {
   setValue('mLinkBaTahap3', item.linkBaTahap3);
   setValue('mLinkBaTahap4', item.linkBaTahap4);
 
-  // Render 4 Berkas Link BA ke Modal
+  // Hitung Progres & Status Pelaksanaan PM secara otomatis berdasarkan data terkini
+  calculatePmPopProgress();
+
+  // Render Berkas Link BA ke Modal
   renderBaLink('baContainer1', item.linkBaTahap1, 'BA Tahap 1', item.popName);
   renderBaLink('baContainer2', item.linkBaTahap2, 'BA Tahap 2', item.popName);
   renderBaLink('baContainer3', item.linkBaTahap3, 'BA Tahap 3', item.popName);
@@ -465,6 +579,8 @@ function closeDetailModal() {
 // 8. Auto Save Perubahan ke Server Backend
 function autoSaveData() {
   if (selectedIndex === null) return;
+
+  calculatePmPopProgress();
 
   const autoStatus = document.getElementById('autoSaveStatus');
   if (autoStatus) {
@@ -537,4 +653,54 @@ function autoSaveData() {
       }
     }
   }, 300);
+}
+
+// ==========================================================
+// 9. LOGIKA MODAL & EKSEKUSI RESET TAHUNAN PM POP
+// ==========================================================
+
+// Buka Modal Reset Tahunan
+function openResetModal() {
+  const modal = document.getElementById('resetModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+// Tutup Modal Reset Tahunan
+function closeResetModal() {
+  const modal = document.getElementById('resetModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Eksekusi Reset Jadwal & Realisasi PM POP di Server
+async function confirmResetPmPop() {
+  const btn = document.getElementById('btnConfirmReset');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Memproses...';
+  }
+
+  try {
+    const response = await fetch('/api/pm-pop/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error('Gagal melakukan reset data di server.');
+    }
+
+    const result = await response.json();
+    alert('✅ ' + result.message);
+
+    closeResetModal();
+    fetchPmPopData(); // Refresh ulang tabel & KPI summary
+  } catch (error) {
+    console.error('Error resetting PM POP data:', error);
+    alert('❌ Terjadi kesalahan saat melakukan reset data PM POP.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Ya, Reset Jadwal';
+    }
+  }
 }

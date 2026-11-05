@@ -324,6 +324,21 @@
     </main>
   </div>
 
+  <!-- MODAL POP-UP KONFIRMASI LOGOUT -->
+<div class="modal-overlay" id="logoutModal" onclick="if(event.target === this) closeLogoutModal()">
+  <div class="modal-card">
+    <div class="modal-icon">
+      <i class="fa-solid fa-right-from-bracket"></i>
+    </div>
+    <h3 class="modal-title">Konfirmasi Keluar</h3>
+    <p class="modal-desc">Apakah Anda yakin ingin keluar dari sistem Monitoring PM RJBT?</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-modal btn-cancel" onclick="closeLogoutModal()">Batal</button>
+      <button type="button" class="btn-modal btn-confirm-logout" onclick="confirmLogout()">Ya, Keluar</button>
+    </div>
+  </div>
+</div>
+
   <script src="script.js"></script>
 </body>
 </html>

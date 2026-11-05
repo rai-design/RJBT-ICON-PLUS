@@ -1,9 +1,22 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <!-- 1. PROTEKSI SESI LOGIN (AUTH GUARD KETAT) -->
+  <script>
+    (function() {
+      const userSession = localStorage.getItem('user_session');
+      if (!userSession) {
+        // Jika belum ada sesi login, paksa langsung alihkan ke login.html
+        window.location.replace('/login.html');
+      }
+    })();
+  </script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PM POWERSUPPLY RJBT1</title>
+  <!-- FontAwesome CDN untuk Ikon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="power-supply.css" />
 </head>
 <body>
@@ -15,8 +28,20 @@
       <h2>Data Preventif Maintenance Power Supply</h2>
       <p>Rekapitulasi data sistem rectifier, kapasitas baterai, dan health index.</p>
     </div>
+    
+    <!-- Tombol Header Action (Export Excel & Refresh Data) -->
     <div class="ps-actions">
-      <button onclick="fetchPowerSupplyData()" class="btn-refresh">Refresh Data</button>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <!-- Tombol Export Excel -->
+        <button type="button" onclick="exportPowerSupplyExcel()" class="btn-export-excel">
+          <i class="fa-solid fa-file-excel"></i> Export Excel
+        </button>
+
+        <!-- Tombol Refresh Data -->
+        <button type="button" onclick="fetchPowerSupplyData()" class="btn-refresh">
+          <i class="fa-solid fa-rotate-right"></i> Refresh Data
+        </button>
+      </div>
     </div>
   </div>
 
@@ -48,18 +73,17 @@
   </div>
 
   <!-- FILTER & SEARCH BAR -->
-  <!-- Filter Box -->
-<div class="filter-box">
-  <input type="text" id="searchInput" placeholder="Cari ID POP, Lokasi, Model..." onkeyup="applyFilters()" />
-  
-  <select id="filterKp" onchange="applyFilters()">
-    <option value="ALL">Semua Regional KP</option>
-    <option value="SURABAYA">KP SURABAYA</option>
-    <option value="MALANG">KP MALANG</option>
-    <option value="MADIUN">KP MADIUN</option>
-    <option value="JEMBER">KP JEMBER</option>
-  </select>
-</div>
+  <div class="filter-box">
+    <input type="text" id="searchInput" placeholder="Cari ID POP, Lokasi, Model..." onkeyup="applyFilters()" />
+    
+    <select id="filterKp" onchange="applyFilters()">
+      <option value="ALL">Semua Regional KP</option>
+      <option value="SURABAYA">KP SURABAYA</option>
+      <option value="MALANG">KP MALANG</option>
+      <option value="MADIUN">KP MADIUN</option>
+      <option value="JEMBER">KP JEMBER</option>
+    </select>
+  </div>
 
   <!-- TABEL INTERAKTIF RINGKAS -->
   <div class="table-container">
@@ -119,7 +143,66 @@
 
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px; margin-top: 12px;">
         
-        <!-- KELOMPOK 1: DATA SISTEM RECTIFIER (RECTIFIER 1 & RECTIFIER 2) -->
+        <!-- ==================================================================== -->
+        <!-- 1. KELOMPOK UTAMA (HIGHLIGHT): TEGANGAN, KONDISI FISIK & HEALTH INDEX -->
+        <!-- ==================================================================== -->
+        <div class="info-box" style="background: #f0f9ff; border: 1.5px solid #0284c7; padding: 14px; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #bae6fd; padding-bottom: 8px;">
+            <strong style="color: #0369a1; font-size: 0.92rem; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-bolt" style="color: #0284c7;"></i> Tegangan, Kondisi Fisik & Health Index Site
+            </strong>
+            
+            <!-- BADGE TAMPILAN HEALTH INDEX -->
+            <div style="display: flex; align-items: center; gap: 8px; background: #ffffff; padding: 4px 14px; border-radius: 20px; border: 1px solid #7dd3fc; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+              <span style="font-size: 0.72rem; font-weight: 800; color: #0369a1; letter-spacing: 0.5px;">HEALTH INDEX:</span>
+              <span id="mHealthIndexDisplay" style="font-size: 1.15rem; font-weight: 800; color: #16a34a;">100%</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
+            <div>
+              <label><strong>Tegangan PLN (Bobot 35%):</strong></label>
+              <select id="mTeganganPln" class="modal-select" onchange="calculateHealthIndex(); autoSaveData();">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+                <option value="DROP">DROP</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Kondisi Fisik Battery/Recti (Bobot 25%):</strong></label>
+              <select id="mKondisiFisik" class="modal-select" onchange="calculateHealthIndex(); autoSaveData();">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>Tegangan Battery (Bobot 25%):</strong></label>
+              <select id="mTeganganBattery" class="modal-select" onchange="calculateHealthIndex(); autoSaveData();">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+              </select>
+            </div>
+            <div>
+              <label><strong>External Alarm (Bobot 15%):</strong></label>
+              <select id="mExternalAlarm" class="modal-select" onchange="calculateHealthIndex(); autoSaveData();">
+                <option value="NORMAL">NORMAL</option>
+                <option value="NOT OK">NOT OK</option>
+              </select>
+            </div>
+
+            <!-- FIELD HEALTH INDEX TERKUNCI (AUTOMATICALLY CALCULATED) -->
+            <div style="grid-column: span 2; background: #ffffff; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 4px;">
+              <label style="color: #0369a1; font-weight: 700;">
+                Health Index Power Supply (%) <small style="color: #64748b; font-weight: 400;">(Otomatis dari 4 Parameter di atas)</small>
+              </label>
+              <input type="number" id="mHealthIndexPs" class="modal-select" style="font-weight: 800; color: #16a34a; font-size: 0.95rem; margin-top: 2px; background-color: #f1f5f9; cursor: not-allowed;" readonly placeholder="100" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- 2. KELOMPOK: DATA SISTEM RECTIFIER -->
+        <!-- ==================================================================== -->
         <div class="info-box">
           <strong style="color: #005b94; display: block; margin-bottom: 12px; font-size: 0.9rem;">Data Sistem Rectifier</strong>
           
@@ -165,7 +248,7 @@
             </div>
           </div>
 
-          <!-- SUB-SEKSI: RECTIFIER 2 (OPSIONAL) -->
+          <!-- SUB-SEKSI: RECTIFIER 2 -->
           <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px dashed #94a3b8;">
             <span style="font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Rectifier 2 <small style="font-weight: 400; color: #64748b;">(Terisi otomatis jika ada)</small></span>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
@@ -207,7 +290,6 @@
             </div>
           </div>
 
-          <!-- DATALIST PILIHAN MERK & TIPE -->
           <datalist id="listRectiBrand">
             <option value="AEG"></option>
             <option value="Alpha 1U"></option>
@@ -225,7 +307,9 @@
           </datalist>
         </div>
 
-        <!-- KELOMPOK 2: DATA SISTEM BATERAI -->
+        <!-- ==================================================================== -->
+        <!-- 3. KELOMPOK: DATA SISTEM BATERAI -->
+        <!-- ==================================================================== -->
         <div class="info-box">
           <strong style="color: #005b94; display: block; margin-bottom: 10px;">Data Sistem Baterai</strong>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
@@ -296,7 +380,9 @@
           </div>
         </div>
 
-        <!-- KELOMPOK 3: KEBUTUHAN & EVALUASI MAINTENANCE -->
+        <!-- ==================================================================== -->
+        <!-- 4. KELOMPOK: KEBUTUHAN & EVALUASI MAINTENANCE -->
+        <!-- ==================================================================== -->
         <div class="info-box">
           <strong style="color: #005b94; display: block; margin-bottom: 10px;">Kebutuhan & Evaluasi Maintenance</strong>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
@@ -322,18 +408,16 @@
               <label><strong>STATUS:</strong></label>
               <input type="text" id="mStatusMaster" class="modal-select" oninput="autoSaveData()" placeholder="Status Evaluasi..." />
             </div>
-            <div>
+            <div style="grid-column: span 2;">
               <label><strong>Butuh +Batt (AH):</strong></label>
               <input type="number" id="mButuhPlusBattAh" class="modal-select" oninput="autoSaveData()" placeholder="0" />
-            </div>
-            <div>
-              <label><strong>Health Index Power Supply (%):</strong></label>
-              <input type="number" min="0" max="100" id="mHealthIndexPs" class="modal-select" oninput="autoSaveData()" placeholder="100" />
             </div>
           </div>
         </div>
 
-        <!-- KELOMPOK 4: STATUS PENGUJIAN DUMMY LOAD -->
+        <!-- ==================================================================== -->
+        <!-- 5. KELOMPOK: STATUS PENGUJIAN DUMMY LOAD -->
+        <!-- ==================================================================== -->
         <div class="info-box">
           <strong style="color: #005b94; display: block; margin-bottom: 10px;">Status Pengujian Dummy Load</strong>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
@@ -372,42 +456,6 @@
           </div>
         </div>
 
-        <!-- KELOMPOK 5: TEGANGAN, KONDISI FISIK & ALARM -->
-        <div class="info-box">
-          <strong style="color: #005b94; display: block; margin-bottom: 10px;">Tegangan & Kondisi Fisik Site</strong>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.78rem;">
-            <div>
-              <label><strong>Tegangan PLN:</strong></label>
-              <select id="mTeganganPln" class="modal-select" onchange="autoSaveData()">
-                <option value="NORMAL">NORMAL</option>
-                <option value="NOT OK">NOT OK</option>
-                <option value="DROP">DROP</option>
-              </select>
-            </div>
-            <div>
-              <label><strong>Kondisi Fisik Battery/Recti:</strong></label>
-              <select id="mKondisiFisik" class="modal-select" onchange="autoSaveData()">
-                <option value="NORMAL">NORMAL</option>
-                <option value="NOT OK">NOT OK</option>
-              </select>
-            </div>
-            <div>
-              <label><strong>Tegangan Battery:</strong></label>
-              <select id="mTeganganBattery" class="modal-select" onchange="autoSaveData()">
-                <option value="NORMAL">NORMAL</option>
-                <option value="NOT OK">NOT OK</option>
-              </select>
-            </div>
-            <div>
-              <label><strong>External Alarm:</strong></label>
-              <select id="mExternalAlarm" class="modal-select" onchange="autoSaveData()">
-                <option value="NORMAL">NORMAL</option>
-                <option value="NOT OK">NOT OK</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
@@ -418,5 +466,31 @@
   </div>
 
   <script src="power-supply.js"></script>
+  
+  <!-- FUNGSI PEMBARUAN EFEK HEALTH INDEX & EXPORT EXCEL -->
+  <script>
+    function updateHealthIndexBadge() {
+      const inputVal = document.getElementById('mHealthIndexPs').value;
+      const badgeElem = document.getElementById('mHealthIndexDisplay');
+      if (badgeElem) {
+        const val = inputVal !== '' ? inputVal : '100';
+        badgeElem.textContent = `${val}%`;
+        
+        // Ubah warna badge secara dinamis berdasarkan angka Health Index
+        const num = parseFloat(val);
+        if (num >= 80) {
+          badgeElem.style.color = '#16a34a'; // Hijau
+        } else if (num >= 60) {
+          badgeElem.style.color = '#d97706'; // Kuning / Amber
+        } else {
+          badgeElem.style.color = '#dc2626'; // Merah
+        }
+      }
+    }
+
+    function exportPowerSupplyExcel() {
+      window.open('/api/export/power-supply', '_blank');
+    }
+  </script>
 </body>
 </html>

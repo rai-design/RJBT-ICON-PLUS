@@ -94,7 +94,7 @@
     .brand-title {
       font-size: 1.45rem;
       font-weight: 800;
-      color: #0084bd; /* Biru khas PLN Icon Plus */
+      color: #0084bd;
       letter-spacing: 0.5px;
     }
 
@@ -429,7 +429,6 @@
           localStorage.setItem('user_session', JSON.stringify(data.user));
           
           setTimeout(() => {
-            // Mengarahkan ke halaman index.html
             window.location.href = '/index.html'; 
           }, 1000);
         } else {
@@ -448,7 +447,6 @@
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value;
 
-      // Pengecekan Panjang Password
       if (password.length < 8) {
         showAlert('Password minimal harus 8 karakter!');
         return;

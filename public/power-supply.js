@@ -186,7 +186,7 @@ function renderTable() {
   pageData.forEach((item, pageIdx) => {
     const tr = document.createElement('tr');
     const hiValue = parseFloat(item.healthIndexPowerSupply) || 100;
-    const hiColor = hiValue >= 90 ? '#16a34a' : (hiValue >= 70 ? '#d97706' : '#dc2626');
+    const hiColor = hiValue >= 80 ? '#16a34a' : (hiValue >= 60 ? '#d97706' : '#dc2626');
 
     const originalIndex = allPowerSupplyData.findIndex(i => i.idPop === item.idPop);
 
@@ -310,7 +310,7 @@ function changeRowsPerPage(val) {
   renderTable();
 }
 
-// 6. Filter Data Interaktif (Pancarian, Regional KP, & KPI Card)
+// 6. Filter Data Interaktif (Pencarian, Regional KP, & KPI Card)
 function filterData(resetPage = true) {
   const searchInput = document.getElementById('searchInput');
   const filterKp = document.getElementById('filterKp');
@@ -384,25 +384,39 @@ function formatDateForInput(dateStr) {
   return d.toISOString().split('T')[0];
 }
 
-// Helper Hitung Otomatis Health Index Berdasarkan Bobot Parameter Site
+// Helper Hitung Otomatis Health Index Berdasarkan Rumus Excel Master:
+// =IF(PLN="NORMAL",35,0) + IF(BATTERY="NORMAL",25,0) + IF(FISIK="NORMAL",25,0) + IF(ALARM="NORMAL",15,0)
 function calculateHealthIndex() {
-  const pln = document.getElementById('mTeganganPln')?.value.toUpperCase() || '';
-  const fisik = document.getElementById('mKondisiFisik')?.value.toUpperCase() || '';
-  const batt = document.getElementById('mTeganganBattery')?.value.toUpperCase() || '';
-  const alarm = document.getElementById('mExternalAlarm')?.value.toUpperCase() || '';
+  const pln = document.getElementById('mTeganganPln')?.value.toUpperCase() || 'NORMAL';
+  const fisik = document.getElementById('mKondisiFisik')?.value.toUpperCase() || 'NORMAL';
+  const batt = document.getElementById('mTeganganBattery')?.value.toUpperCase() || 'NORMAL';
+  const alarm = document.getElementById('mExternalAlarm')?.value.toUpperCase() || 'NORMAL';
 
-  let score = 100;
+  let score = 0;
 
-  if (alarm === 'NOT OK') score -= 15;
-  if (batt === 'NOT OK') score -= 25;
-  if (fisik === 'NOT OK') score -= 25;
-  if (pln === 'NOT OK' || pln === 'DROP') score -= 35;
+  if (pln === 'NORMAL') score += 35;
+  if (batt === 'NORMAL') score += 25;
+  if (fisik === 'NORMAL') score += 25;
+  if (alarm === 'NORMAL') score += 15;
 
-  if (score < 0) score = 0;
-
+  // 1. Update Input Read-Only
   const inputHi = document.getElementById('mHealthIndexPs');
   if (inputHi) {
     inputHi.value = score;
+  }
+
+  // 2. Update Badge Display Kanan Atas
+  const badgeElem = document.getElementById('mHealthIndexDisplay');
+  if (badgeElem) {
+    badgeElem.textContent = `${score}%`;
+
+    if (score >= 80) {
+      badgeElem.style.color = '#16a34a'; // Hijau
+    } else if (score >= 60) {
+      badgeElem.style.color = '#d97706'; // Kuning/Amber
+    } else {
+      badgeElem.style.color = '#dc2626'; // Merah
+    }
   }
 
   return score;
@@ -425,7 +439,16 @@ function openModal(index) {
   const autoStatus = document.getElementById('autoSaveStatus');
   if (autoStatus) autoStatus.textContent = '';
 
-  // 1. Rectifier 1
+  // 1. Tegangan, Kondisi Fisik & Alarm (Diset pertama agar calculateHealthIndex bekerja)
+  setValue('mTeganganPln', item.teganganPln);
+  setValue('mKondisiFisik', item.kondisiFisikBatteryRecti);
+  setValue('mTeganganBattery', item.teganganBattery);
+  setValue('mExternalAlarm', item.externalAlarm);
+
+  // Calculate Health Index & Sync Badge Visual
+  calculateHealthIndex();
+
+  // 2. Rectifier 1
   setValue('mRectiBrand1', item.rectifierBrand1);
   setValue('mKapTotalRecti1', item.kapTotalModulRecti1);
   setValue('mTipeModulRecti1', item.tipeModulRecti1);
@@ -434,7 +457,7 @@ function openModal(index) {
   setValue('mBebanRectiA', item.bebanRectiA);
   setValue('mKapTiapModul1', item.kapTiapModulRecti1);
 
-  // 2. Rectifier 2
+  // 3. Rectifier 2
   const r2 = item.rect2 || {};
   setValue('mRectiBrand2', r2.rectifierBrand1 || '');
   setValue('mKapTotalRecti2', r2.kapTotalModulRecti1 || '');
@@ -444,7 +467,7 @@ function openModal(index) {
   setValue('mBebanRectiA2', r2.bebanRectiA || '');
   setValue('mKapTiapModul2', r2.kapTiapModulRecti1 || '');
 
-  // 3. Baterai
+  // 4. Baterai
   setValue('mMerkBatt', item.merkBatt);
   setValue('mJmlBatt', item.jmlBatt);
   setValue('mTipeBatt', item.tipeBatt);
@@ -454,28 +477,20 @@ function openModal(index) {
   setValue('mStatusUmurBatt', item.statusUmurBatt);
   setValue('mStatusKemampuan', item.statusKemampuan);
 
-  // 4. Maintenance & Evaluasi
+  // 5. Maintenance & Evaluasi
   setValue('mInsertDate', item.insertDate);
   setValue('mPrioritasBatt', item.prioritasBatt);
   setValue('mButuhRecti', item.butuhRecti);
   setValue('mStatusMaster', item.status);
   setValue('mButuhPlusBattAh', item.butuhBattAh);
 
-  // 5. Dummy Load
+  // 6. Dummy Load
   setValue('mButuhDummy2025', item.butuhDummy2025);
   setValue('mDoneDummy', item.doneDummy);
   setValue('mLastDummy', item.lastDummy);
   setValue('mJumlahBattBank', item.jumlahBattBank);
   setValue('mTanggalDummy2025', item.tanggalDummy2025);
   setValue('mKapBattAfterDummy', item.kapBattAfterDummyAh);
-
-  // 6. Tegangan, Kondisi Fisik & Alarm
-  setValue('mTeganganPln', item.teganganPln);
-  setValue('mKondisiFisik', item.kondisiFisikBatteryRecti);
-  setValue('mTeganganBattery', item.teganganBattery);
-  setValue('mExternalAlarm', item.externalAlarm);
-
-  calculateHealthIndex();
 
   const detailModal = document.getElementById('detailModal');
   if (detailModal) detailModal.classList.remove('hidden');
