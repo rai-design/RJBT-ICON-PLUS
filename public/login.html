@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login & Register - Dashboard Preventive Maintenance RJBT</title>
+  <title>Login - Dashboard Preventive Maintenance RJBT</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -17,59 +17,37 @@
 
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0b1e36 0%, #0f2942 50%, #031322 100%);
+      background: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    /* Ornamen Latar Belakang Gradient */
-    body::before {
-      content: '';
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(0, 132, 189, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
-      top: -100px;
-      right: -100px;
-      border-radius: 50%;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: absolute;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(250, 204, 21, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
-      bottom: -100px;
-      left: -100px;
-      border-radius: 50%;
-      z-index: 0;
+      color: #1e293b;
     }
 
     .auth-container {
       width: 100%;
-      max-width: 440px;
-      background: rgba(15, 30, 52, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      padding: 36px 32px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-      z-index: 1;
-      color: #ffffff;
-      position: relative;
+      max-width: 420px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-top: 4px solid #005b94;
+      border-radius: 18px;
+      padding: 36px 32px 30px;
+      box-shadow: 0 14px 38px rgba(11, 65, 113, 0.09);
+      animation: cardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes cardFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Header Logo PLN Icon Plus RJBT */
     .brand-header {
       text-align: center;
       margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f1f5f9;
     }
 
     .brand-logo-badge {
@@ -77,7 +55,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .sidebar-brand-img {
@@ -94,62 +72,29 @@
     .brand-title {
       font-size: 1.45rem;
       font-weight: 800;
-      color: #0084bd;
+      color: #005b94;
       letter-spacing: 0.5px;
     }
 
     .brand-subtitle {
       font-size: 0.88rem;
-      color: #e2e8f0;
+      color: #475569;
       font-weight: 700;
     }
 
     .brand-system-tag {
       font-size: 0.78rem;
-      color: #94a3b8;
+      color: #64748b;
       font-weight: 600;
-      margin-top: 6px;
-      letter-spacing: 0.3px;
-    }
-
-    /* Tab Switcher */
-    .tab-switcher {
-      display: flex;
-      background: rgba(2, 12, 27, 0.6);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      font-weight: 600;
-      font-size: 0.88rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .tab-btn.active {
-      background: #0084bd;
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 132, 189, 0.35);
+      margin-top: 4px;
+      letter-spacing: 0.2px;
     }
 
     /* Form Styles */
     .auth-form {
-      display: none;
+      display: flex;
       flex-direction: column;
       gap: 18px;
-    }
-
-    .auth-form.active {
-      display: flex;
     }
 
     .form-group {
@@ -160,8 +105,8 @@
 
     .form-group label {
       font-size: 0.8rem;
-      font-weight: 600;
-      color: #cbd5e1;
+      font-weight: 700;
+      color: #334155;
     }
 
     .input-wrapper {
@@ -173,8 +118,9 @@
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      color: #64748b;
-      font-size: 0.95rem;
+      color: #94a3b8;
+      font-size: 0.92rem;
+      transition: color 0.2s;
     }
 
     .toggle-password {
@@ -182,68 +128,84 @@
       right: 14px;
       top: 50%;
       transform: translateY(-50%);
-      color: #64748b;
+      color: #94a3b8;
       font-size: 0.9rem;
       cursor: pointer;
       transition: color 0.2s;
     }
 
     .toggle-password:hover {
-      color: #38bdf8;
+      color: #005b94;
     }
 
     .form-control {
       width: 100%;
-      padding: 12px 40px 12px 40px;
-      background: rgba(2, 12, 27, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 40px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
-      color: #ffffff;
+      color: #0f172a;
       font-size: 0.9rem;
       outline: none;
-      transition: all 0.25s ease;
+      transition: all 0.22s ease;
+    }
+
+    .form-control::placeholder {
+      color: #94a3b8;
     }
 
     .form-control:focus {
-      border-color: #0084bd;
-      box-shadow: 0 0 0 3px rgba(0, 132, 189, 0.25);
+      background: #ffffff;
+      border-color: #005b94;
+      box-shadow: 0 0 0 3px rgba(0, 91, 148, 0.14);
+    }
+
+    .input-wrapper:focus-within .input-icon {
+      color: #005b94;
     }
 
     .btn-submit {
       width: 100%;
       padding: 12px;
-      background: linear-gradient(135deg, #0084bd 0%, #005f8a 100%);
+      background: linear-gradient(135deg, #005b94 0%, #0084bd 100%);
       border: none;
       border-radius: 10px;
       color: #ffffff;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       cursor: pointer;
-      margin-top: 6px;
-      transition: all 0.3s ease;
+      margin-top: 4px;
+      transition: all 0.25s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 91, 148, 0.25);
     }
 
     .btn-submit:hover {
-      background: linear-gradient(135deg, #0098d9 0%, #0072a6 100%);
+      background: linear-gradient(135deg, #004a78 0%, #0072a6 100%);
       transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(0, 132, 189, 0.4);
+      box-shadow: 0 6px 18px rgba(0, 91, 148, 0.32);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
     }
 
     /* Alert Message Box */
     .alert-box {
       padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.82rem;
+      border-radius: 9px;
+      font-size: 0.8rem;
       font-weight: 600;
       display: none;
       align-items: center;
       gap: 8px;
       margin-bottom: 16px;
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.25s ease;
     }
 
     @keyframes fadeIn {
@@ -252,23 +214,25 @@
     }
 
     .alert-error {
-      background: rgba(225, 29, 72, 0.2);
-      border: 1px solid rgba(225, 29, 72, 0.4);
-      color: #fca5a5;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
     }
 
     .alert-success {
-      background: rgba(16, 185, 129, 0.2);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #6ee7b7;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
     }
 
     .footer-text {
       text-align: center;
       margin-top: 24px;
-      font-size: 0.75rem;
+      padding-top: 16px;
+      border-top: 1px solid #f1f5f9;
+      font-size: 0.74rem;
       color: #64748b;
-      line-height: 1.4;
+      line-height: 1.45;
     }
   </style>
 </head>
@@ -284,25 +248,19 @@
           <div class="brand-subtitle">Icon Plus</div>
         </div>
       </div>
-      <div class="brand-system-tag">Monitoring & Preventive Maintenance RJBT</div>
+      <div class="brand-system-tag">Monitoring &amp; Preventive Maintenance RJBT</div>
     </div>
 
     <!-- Alert Message -->
     <div id="alertBox" class="alert-box"></div>
 
-    <!-- Tab Switcher -->
-    <div class="tab-switcher">
-      <button type="button" class="tab-btn active" onclick="switchAuthTab('login')">Masuk (Login)</button>
-      <button type="button" class="tab-btn" onclick="switchAuthTab('register')">Daftar Akun</button>
-    </div>
-
     <!-- Form Login -->
-    <form id="formLogin" class="auth-form active" onsubmit="handleLogin(event)">
+    <form id="formLogin" class="auth-form" onsubmit="handleLogin(event)">
       <div class="form-group">
-        <label for="loginUsername">Username / Email</label>
+        <label for="loginUsername">Username</label>
         <div class="input-wrapper">
           <i class="fa-solid fa-user input-icon"></i>
-          <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username" required autocomplete="username">
+          <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username" required autocomplete="username" autofocus>
         </div>
       </div>
 
@@ -315,79 +273,19 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-submit">
+      <button type="submit" id="btnSubmitLogin" class="btn-submit">
         <span>Masuk Ke Dashboard</span>
         <i class="fa-solid fa-arrow-right"></i>
       </button>
     </form>
 
-    <!-- Form Register -->
-    <form id="formRegister" class="auth-form" onsubmit="handleRegister(event)">
-      <div class="form-group">
-        <label for="regNama">Nama Lengkap</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-id-card input-icon"></i>
-          <input type="text" id="regNama" class="form-control" placeholder="Nama Petugas / Admin" required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="regUsername">Username</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-user-tag input-icon"></i>
-          <input type="text" id="regUsername" class="form-control" placeholder="username_bebas" required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="regEmail">Email Perusahaan</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-envelope input-icon"></i>
-          <input type="email" id="regEmail" class="form-control" placeholder="admin@iconpln.co.id" required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="regPassword">Password (Minimal 8 Karakter)</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-key input-icon"></i>
-          <input type="password" id="regPassword" class="form-control" placeholder="Minimal 8 karakter" minlength="8" required autocomplete="new-password">
-          <i class="fa-solid fa-eye toggle-password" onclick="togglePasswordVisibility('regPassword', this)"></i>
-        </div>
-      </div>
-
-      <button type="submit" class="btn-submit">
-        <span>Buat Akun Baru</span>
-        <i class="fa-solid fa-user-plus"></i>
-      </button>
-    </form>
-
     <div class="footer-text">
       &copy; 2026 PLN Icon Plus SBU Regional Jawa Bagian Timur.<br>
-      Preventive Maintenance & Monitoring System.
+      Preventive Maintenance &amp; Monitoring System.
     </div>
   </div>
 
   <script>
-    // Ganti Tab Login / Register
-    function switchAuthTab(type) {
-      const btnTabs = document.querySelectorAll('.tab-btn');
-      const forms = document.querySelectorAll('.auth-form');
-      const alertBox = document.getElementById('alertBox');
-      alertBox.style.display = 'none';
-
-      btnTabs.forEach(btn => btn.classList.remove('active'));
-      forms.forEach(f => f.classList.remove('active'));
-
-      if (type === 'login') {
-        btnTabs[0].classList.add('active');
-        document.getElementById('formLogin').classList.add('active');
-      } else {
-        btnTabs[1].classList.add('active');
-        document.getElementById('formRegister').classList.add('active');
-      }
-    }
-
     // Toggle Lihat / Sembunyikan Password
     function togglePasswordVisibility(inputId, icon) {
       const input = document.getElementById(inputId);
@@ -406,7 +304,7 @@
     function showAlert(message, isSuccess = false) {
       const alertBox = document.getElementById('alertBox');
       alertBox.className = `alert-box ${isSuccess ? 'alert-success' : 'alert-error'}`;
-      alertBox.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
+      alertBox.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> <span>${message}</span>`;
       alertBox.style.display = 'flex';
     }
 
@@ -415,6 +313,10 @@
       e.preventDefault();
       const username = document.getElementById('loginUsername').value.trim();
       const password = document.getElementById('loginPassword').value;
+      const btnSubmit = document.getElementById('btnSubmitLogin');
+
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Memverifikasi...</span>';
 
       try {
         const res = await fetch('/api/auth/login', {
@@ -426,50 +328,20 @@
         const data = await res.json();
         if (res.ok) {
           showAlert('Login berhasil! Mengalihkan ke Dashboard...', true);
-          localStorage.setItem('user_session', JSON.stringify(data.user));
+          localStorage.setItem('user_session', JSON.stringify(data.user || { username: 'admin' }));
           
           setTimeout(() => {
-            window.location.href = '/index.html'; 
-          }, 1000);
+            window.location.replace('/index.html');
+          }, 700);
         } else {
-          showAlert(data.error || 'Login gagal! Periksa username/password Anda.');
+          showAlert(data.error || 'Username atau password salah!');
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '<span>Masuk Ke Dashboard</span> <i class="fa-solid fa-arrow-right"></i>';
         }
       } catch (err) {
         showAlert('Gagal terhubung ke server. Pastikan server Node.js berjalan.');
-      }
-    }
-
-    // Process Register
-    async function handleRegister(e) {
-      e.preventDefault();
-      const nama = document.getElementById('regNama').value.trim();
-      const username = document.getElementById('regUsername').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const password = document.getElementById('regPassword').value;
-
-      if (password.length < 8) {
-        showAlert('Password minimal harus 8 karakter!');
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nama, username, email, password })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          showAlert('Registrasi berhasil! Silakan login.', true);
-          setTimeout(() => {
-            switchAuthTab('login');
-          }, 1200);
-        } else {
-          showAlert(data.error || 'Registrasi gagal!');
-        }
-      } catch (err) {
-        showAlert('Gagal terhubung ke server.');
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span>Masuk Ke Dashboard</span> <i class="fa-solid fa-arrow-right"></i>';
       }
     }
   </script>

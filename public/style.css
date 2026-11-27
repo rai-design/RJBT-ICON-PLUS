@@ -579,11 +579,23 @@ a {
   margin: 0 !important;
 }
 
+@keyframes pageFadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .page.active-page {
   display: flex;
   flex-direction: column;
   flex: 1;
   width: 100% !important;
+  animation: pageFadeSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* SET PADDING 25px (PRESISI DENGAN TOPBAR SEARCH BOX & IFRAME) */
@@ -897,8 +909,8 @@ body.dark {
   --text: #F8FAFC;
   --muted: #94A3B8;
   --border: #1E2D4A;
-  --sidebar: #0A1424;                /* Dark Navy PLN */
-  --bg: #070D18;                     /* Deep Dark Navy */
+  --sidebar: #0A1424;                 /* Dark Navy PLN */
+  --bg: #070D18;                      /* Deep Dark Navy */
   --hover: #111E36;
   --active: #172D4D;
   --surface: #111E36;
@@ -2027,4 +2039,592 @@ body.dark .btn-cancel {
 body.dark .btn-cancel:hover {
   background: #1e3a5f;
   color: #ffffff;
+}
+
+/* =========================================================
+   STYLE TABEL DASHBOARD DATA MASTER POP (NAMA POP WRAPPING 2 BARIS)
+   ========================================================= */
+
+#tableMasterBody td:nth-child(5),
+.dashboard-page table td:nth-child(5) {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+
+/* Kolom 7 (Power Supply), 8 (AC), 9 (Genset), 10 (PM POP) */
+#tableMasterBody td:nth-child(7),
+#tableMasterBody td:nth-child(8),
+#tableMasterBody td:nth-child(9),
+#tableMasterBody td:nth-child(10),
+.dashboard-page table td:nth-child(7),
+.dashboard-page table td:nth-child(8),
+.dashboard-page table td:nth-child(9),
+.dashboard-page table td:nth-child(10) {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: 95px !important;
+  min-width: 78px !important;
+  line-height: 1.25 !important;
+  font-size: 0.72rem !important;
+  vertical-align: middle !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* =========================================================
+   MODAL POP-UP EDIT CATATAN POP (MIRIP MODUL MONITORING RJBT)
+   ========================================================= */
+
+.rjbt-modal-card {
+  background: #ffffff;
+  width: 92%;
+  max-width: 650px;
+  max-height: 88vh;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  animation: modalSlideUp 0.25s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rjbt-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #ffffff;
+}
+
+.rjbt-modal-id {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #005b94;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.rjbt-modal-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.rjbt-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.rjbt-modal-close:hover {
+  color: #dc2626;
+}
+
+.rjbt-modal-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #f8fafc;
+}
+
+.rjbt-section-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.rjbt-section-box.highlight-box {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.rjbt-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.rjbt-box-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rjbt-hi-badge {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.rjbt-info-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+  font-size: 0.78rem;
+  color: #334155;
+}
+
+.rjbt-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.rjbt-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rjbt-form-group label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.rjbt-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  resize: none !important; /* MENGUNCI UKURAN INPUT/TEXTAREA AGAR TIDAK BISA DILEBARKAN */
+}
+
+.rjbt-input:focus {
+  border-color: #005b94;
+  box-shadow: 0 0 0 3px rgba(0, 91, 148, 0.15);
+}
+
+.rjbt-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-rjbt-sec {
+  background: #e2e8f0;
+  color: #475569;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-rjbt-sec:hover {
+  background: #cbd5e1;
+}
+
+.btn-rjbt-pri {
+  background: #005b94;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 91, 148, 0.2);
+}
+
+.btn-rjbt-pri:hover {
+  background: #00426d;
+}
+
+/* Dark Mode Modal RJBT Style */
+body.dark .rjbt-modal-card {
+  background: #111e36 !important;
+  border-color: #1e2d4a !important;
+}
+
+body.dark .rjbt-modal-header {
+  background: #111e36 !important;
+  border-bottom-color: #1e2d4a !important;
+}
+
+body.dark .rjbt-modal-id { color: #38bdf8 !important; }
+body.dark .rjbt-modal-sub { color: #94a3b8 !important; }
+
+body.dark .rjbt-modal-body {
+  background: #070d18 !important;
+}
+
+body.dark .rjbt-section-box {
+  background: #111e36 !important;
+  border-color: #1e2d4a !important;
+}
+
+body.dark .rjbt-section-box.highlight-box {
+  background: #172d4d !important;
+  border-color: #1e2d4a !important;
+}
+
+body.dark .rjbt-box-title { color: #f8fafc !important; }
+body.dark .rjbt-hi-badge { background: #172d4d !important; border-color: #1e2d4a !important; color: #f8fafc !important; }
+body.dark .rjbt-info-row { color: #cbd5e1 !important; }
+body.dark .rjbt-form-group label { color: #cbd5e1 !important; }
+
+body.dark .rjbt-input {
+  background: #172d4d !important;
+  border-color: #1e2d4a !important;
+  color: #f8fafc !important;
+  resize: none !important;
+}
+
+body.dark .rjbt-input:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+}
+
+body.dark .rjbt-modal-footer {
+  border-top-color: #1e2d4a !important;
+}
+
+body.dark .btn-rjbt-sec {
+  background: #172d4d !important;
+  color: #cbd5e1 !important;
+}
+
+/* MENGUNCI UKURAN SELURUH TEXTAREA MODAL RJBT */
+.rjbt-modal-card textarea,
+textarea.rjbt-input {
+  resize: none !important;
+}
+
+/* =========================================================
+   BLUR SIDEBAR & TOPBAR SAAT POP-UP DI DALAM IFRAME AKTIF
+   ========================================================= */
+.sidebar,
+.topbar {
+  transition: filter 0.2s ease;
+}
+
+body.iframe-modal-open .sidebar,
+body.iframe-modal-open .topbar {
+  filter: blur(5px) brightness(0.75) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* =========================================================
+   ANIMASI INTERAKTIF TOMBOL & SUBMENU SIDEBAR
+   ========================================================= */
+
+/* 1. Transisi Halus pada Item Menu Utama & Submenu */
+.nav-item,
+.sub-item {
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    padding-left 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease !important;
+}
+
+/* 2. Efek Geser & Tekan Halus Saat Hover / Klik */
+.nav-item:hover {
+  transform: translateX(4px);
+}
+
+.nav-item:active {
+  transform: translateX(2px) scale(0.985);
+}
+
+.sub-item:hover {
+  transform: translateX(5px);
+}
+
+.sub-item:active {
+  transform: translateX(2px) scale(0.985);
+}
+
+/* 3. Animasi Indikator Bar Kiri Saat Menu Aktif */
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3.5px;
+  height: 0;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+  transform: translateY(-50%);
+  transition: height 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-item.active {
+  border-left: none !important; /* Digantikan oleh ::before yang beranimasi */
+  box-shadow: 0 2px 8px rgba(0, 91, 148, 0.08);
+}
+
+.nav-item.active::before {
+  height: 68%;
+}
+
+/* 4. Highlight Pill Halus & Titik Berdenyut pada Submenu Aktif */
+.sub-item {
+  border-radius: 7px;
+  padding-right: 10px;
+}
+
+.sub-item.active {
+  background: var(--active);
+  padding-left: 10px;
+}
+
+body.dark .sub-item.active {
+  background: rgba(0, 163, 224, 0.14) !important;
+}
+
+.sub-dot {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.sub-item.active .sub-dot {
+  transform: scale(1.35);
+}
+
+/* 5. Animasi Accordion Submenu (Fade + Slide Saat Dibuka/Ditutup) */
+.submenu {
+  transition:
+    max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s ease,
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.submenu:not(.open) {
+  max-height: 0 !important;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+}
+
+/* 6. Animasi Panah Chevron Monitoring RJBT */
+.chevron {
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease !important;
+}
+
+/* =========================================================
+   LAYOUT KPI SUMMARY CARDS (3-KOLOM ASIMETRIS HIGHLIGHT HI)
+   ========================================================= */
+.kpi-highlight-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: stretch;
+}
+
+.kpi-col-left {
+  display: grid;
+  grid-template-rows: 1.55fr 1fr;
+  gap: 14px;
+}
+
+.kpi-col-stack {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+}
+
+.kpi-highlight-grid .kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-highlight-grid .kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+/* Highlight Kartu Utama: Rata-Rata Health Index */
+.kpi-card-hero {
+  background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%) !important;
+  border: 1.5px solid #86efac !important;
+  border-left: 5px solid #16a34a !important;
+  position: relative;
+}
+
+.kpi-hero-badge {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.kpi-hero-value {
+  font-size: 2.35rem !important;
+  font-weight: 800;
+  color: #16a34a;
+  line-height: 1.1;
+  margin: 4px 0 6px;
+}
+
+/* Kartu Pendek: Total Site POP di bawah Health Index */
+.kpi-card-compact {
+  padding: 14px 20px !important;
+  border-left: 4px solid #0284c7 !important;
+}
+
+.kpi-compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kpi-compact-row .kpi-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+/* Tipografi Standar Kartu Status */
+.kpi-highlight-grid .kpi-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.kpi-highlight-grid .kpi-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 5px 0;
+}
+
+.kpi-highlight-grid .kpi-sub {
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+/* Responsif Tablet & Layar Kecil */
+@media (max-width: 1024px) {
+  .kpi-highlight-grid {
+    grid-template-columns: 1fr;
+  }
+  .kpi-col-left,
+  .kpi-col-stack {
+    grid-template-rows: auto;
+  }
+}
+
+/* Header Flex Layout agar tombol sejajar di atas card Good Condition */
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.header-action-group {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.btn-export-excel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #16a34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-export-excel i {
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+.btn-export-excel:hover {
+  background-color: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(21, 128, 61, 0.32);
+}
+
+.btn-export-excel:active {
+  transform: translateY(0);
+}
+
+.btn-export-excel:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }

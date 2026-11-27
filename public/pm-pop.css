@@ -230,6 +230,14 @@ body {
 .excel-table th:nth-child(9) { width: 220px; }  /* Nomor WO */
 .excel-table th:nth-child(10) { width: 90px; }  /* Aksi */
 
+/* Penyesuaian Agar Nama POP & Mitra Servo Terbaca Utuh (Wrapping ke Baris Baru) */
+.excel-table td:nth-child(3),
+.excel-table td:nth-child(6) {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
 /* Penyesuaian Agar Nomor WO yang Panjang Terbaca Utuh */
 .excel-table td:nth-child(9) {
   white-space: normal;
@@ -239,7 +247,7 @@ body {
 }
 
 .excel-table tbody tr {
-  height: 42px;
+  min-height: 42px;
 }
 
 .excel-table thead th {
@@ -262,6 +270,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   background: #ffffff;
+  vertical-align: middle;
 }
 
 .excel-table tr:hover td {
@@ -659,4 +668,31 @@ body.dark .wo-tag {
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(234, 88, 12, 0.35);
+}
+
+/* =========================================================
+   EFEK BLUR BACKGROUND SAAT MODAL POP-UP DIBUKA
+   ========================================================= */
+.modal-overlay,
+.modal,
+.modal-backdrop,
+div[id*="modal"] {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+/* =========================================================
+   BLUR SIDEBAR & TOPBAR SAAT POP-UP DI DALAM IFRAME AKTIF
+   ========================================================= */
+.sidebar,
+.topbar {
+  transition: filter 0.2s ease;
+}
+
+body.iframe-modal-open .sidebar,
+body.iframe-modal-open .topbar {
+  filter: blur(5px) brightness(0.75) !important;
+  pointer-events: none !important;
+  user-select: none !important;
 }

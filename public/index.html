@@ -6,20 +6,30 @@
     (function() {
       const userSession = localStorage.getItem('user_session');
       if (!userSession) {
-        // Jika belum ada sesi login, paksa langsung alihkan ke login.html
         window.location.replace('/login.html');
       }
     })();
 
-    // Fungsi Logout untuk Menghapus Sesi
     function handleLogout() {
-      if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+      const modal = document.getElementById('logoutModal');
+      if (modal) {
+        modal.classList.add('active');
+      } else if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
         localStorage.removeItem('user_session');
         window.location.replace('/login.html');
       }
     }
 
-    // Tampilkan Nama User yang Login saat DOM Siap
+    function closeLogoutModal() {
+      const modal = document.getElementById('logoutModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function confirmLogout() {
+      localStorage.removeItem('user_session');
+      window.location.replace('/login.html');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       try {
         const userSession = localStorage.getItem('user_session');
@@ -51,7 +61,7 @@
 
   <style>
     /* UTILITY & HELPER CLASSES */
-    .badge-status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+    .badge-status { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
     .badge-good { background: #dcfce7; color: #15803d; }
     .badge-warning { background: #fef3c7; color: #b45309; }
     .badge-check { background: #ffedd5; color: #c2410c; }
@@ -63,59 +73,251 @@
     .text-red { color: #dc2626 !important; }
     .text-blue { color: #0284c7 !important; }
 
-    /* DASHBOARD LAYOUT & CARDS */
+    /* DASHBOARD LAYOUT & KPI CARDS (1 HERO KIRI + 2x2 KANAN) */
     .page-heading { margin-bottom: 20px; padding: 0 !important; margin-left: 0 !important; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
-    .kpi-card { background: #ffffff; padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-    .kpi-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .kpi-value { font-size: 1.75rem; font-weight: 800; color: var(--text); margin: 6px 0 2px 0; }
-    .kpi-sub { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
 
-    .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; background: #ffffff; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); }
-    .filter-group { display: flex; gap: 10px; align-items: center; }
-    .select-input, .search-input-field { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem; outline: none; background: #ffffff; color: #1e293b; }
-    .select-input:focus, .search-input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 91, 148, 0.15); }
+    .kpi-highlight-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      grid-template-rows: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+      align-items: stretch;
+    }
 
-    .table-container { background: #ffffff; border-radius: 12px; border: 1px solid var(--border); padding: 18px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-    .table-responsive { overflow-x: auto; max-height: 520px; }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .data-table th { background: #f8fafc; padding: 12px 10px; text-align: left; color: #475569; font-weight: 700; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10; }
-    .data-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #1e293b; vertical-align: middle; }
-    .data-table tr:hover { background: #f8fafc; }
+    .kpi-card {
+      background: #ffffff;
+      padding: 18px 20px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
 
-    /* USER PROFILE BADGE IN TOPBAR */
-    .user-profile-badge {
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+    }
+
+    .kpi-card-hero {
+      cursor: default;
+    }
+
+    .kpi-clickable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .kpi-clickable.active-kpi {
+      border: 2px solid #005b94 !important;
+      background: #f8fbff !important;
+      box-shadow: 0 6px 18px rgba(0, 91, 148, 0.12);
+    }
+
+    body.dark .kpi-clickable.active-kpi {
+      border-color: #38bdf8 !important;
+      background: #172d4d !important;
+    }
+
+    /* Header Kartu dengan Ikon Kanan */
+    .kpi-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .kpi-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: #f1f5f9;
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid #cbd5e1;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
     }
 
-    .btn-logout {
-      background: transparent;
-      border: none;
-      color: #dc2626;
-      cursor: pointer;
-      font-size: 0.95rem;
-      padding: 2px 4px;
-      transition: color 0.2s;
+    .icon-green { background: #dcfce7; color: #16a34a; }
+    .icon-amber { background: #fef3c7; color: #d97706; }
+    .icon-orange { background: #ffedd5; color: #ea580c; }
+    .icon-red { background: #fee2e2; color: #dc2626; }
+    .icon-blue { background: #e0f2fe; color: #0284c7; }
+
+    .kpi-title {
+      font-size: 0.70rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.55px;
     }
 
-    .btn-logout:hover {
-      color: #991b1b;
+    .kpi-value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 6px 0 4px 0;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
     }
+
+    .kpi-sub {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* HERO CARD KIRI (MEMBENTANG 2 BARIS PENUH) */
+    .kpi-card-hero {
+      grid-row: 1 / span 2;
+      background: linear-gradient(145deg, #004c7a 0%, #0077b6 58%, #0096c7 100%) !important;
+      border: none !important;
+      color: #ffffff !important;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0, 91, 148, 0.24);
+    }
+
+    .kpi-card-hero::after {
+      content: '';
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.07);
+      bottom: -55px;
+      right: -45px;
+      pointer-events: none;
+    }
+
+    .kpi-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: #e0f2fe;
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(4px);
+      padding: 5px 11px;
+      border-radius: 999px;
+    }
+
+    .kpi-hero-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fde047;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .kpi-card-hero .kpi-title {
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.76rem;
+    }
+
+    .kpi-hero-value {
+      font-size: 2.85rem !important;
+      color: #ffffff !important;
+      margin: 6px 0 12px 0;
+      letter-spacing: -1px;
+    }
+
+    .kpi-hero-progress {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .kpi-hero-progress-bar {
+      height: 100%;
+      width: 83.4%;
+      background: linear-gradient(90deg, #4ade80, #fde047);
+      border-radius: 999px;
+      transition: width 0.6s ease;
+    }
+
+    .kpi-card-hero .kpi-sub {
+      color: #bbf7d0 !important;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-highlight-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .kpi-card-hero {
+        grid-row: auto;
+      }
+    }
+
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; background: #ffffff; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border, #e2e8f0); }
+    .filter-group { display: flex; gap: 10px; align-items: center; }
+    .select-input, .search-input-field { padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.80rem; outline: none; background: #ffffff; color: #1e293b; }
+    .select-input:focus, .search-input-field:focus { border-color: var(--primary, #005b94); box-shadow: 0 0 0 3px rgba(0, 91, 148, 0.15); }
+
+    .table-container { background: #ffffff; border-radius: 12px; border: 1px solid var(--border, #e2e8f0); padding: 16px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    
+    .table-responsive { overflow-x: hidden; width: 100%; }
+    .data-table-fixed { width: 100%; border-collapse: collapse; font-size: 0.76rem; table-layout: fixed; }
+    .data-table-fixed th { background: #f8fafc; padding: 10px 6px; text-align: left; color: #475569; font-weight: 700; border-bottom: 2px solid var(--border, #e2e8f0); }
+    .data-table-fixed td { padding: 9px 6px; border-bottom: 1px solid #f1f5f9; color: #1e293b; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .data-table-fixed tbody tr { cursor: pointer; transition: background 0.15s ease; }
+    .data-table-fixed tbody tr:hover { background: #f0f9ff !important; }
+
+    /* PAGINASI STYLING PERSIS MONITORING RJBT */
+    .pagination-wrapper { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 12px; }
+    .pagination-left { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #64748b; font-weight: 500; }
+    .select-rows-per-page { padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.78rem; outline: none; background: #ffffff; color: #1e293b; cursor: pointer; }
+    .select-rows-per-page:focus { border-color: #005b94; }
+
+    .pagination-controls { display: flex; align-items: center; gap: 4px; }
+    .btn-page-num { background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 5px 11px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; min-width: 32px; text-align: center; }
+    .btn-page-num:hover:not(:disabled):not(.active) { background: #f1f5f9; color: #005b94; border-color: #005b94; }
+    .btn-page-num.active { background: #005b94; color: #ffffff; border-color: #005b94; }
+    .btn-page-num:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pagination-dots { padding: 0 4px; font-size: 0.78rem; color: #64748b; font-weight: 600; }
+
+    /* USER PROFILE BADGE */
+    .user-profile-badge { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 6px 14px; border-radius: 20px; border: 1px solid #cbd5e1; }
+    .btn-logout { background: transparent; border: none; color: #dc2626; cursor: pointer; font-size: 0.95rem; padding: 2px 4px; }
+
+    /* Modal Styling Default */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: #ffffff; width: 90%; max-width: 400px; padding: 24px; border-radius: 16px; text-align: center; }
+    .modal-icon { width: 50px; height: 50px; background: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; font-size: 1.25rem; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+    .modal-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 12px; }
+    .btn-modal { flex: 1; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; }
+    .btn-cancel { background: #f1f5f9; color: #475569; }
+    .btn-confirm-logout { background: #dc2626; color: #ffffff; }
 
     /* Dark Mode Overrides */
-    body.dark .kpi-card,
-    body.dark .filter-bar,
-    body.dark .table-container { background: #111E36 !important; border-color: var(--border) !important; }
-    body.dark .data-table th { background: #0B1220 !important; color: #cbd5e1 !important; border-color: var(--border) !important; }
-    body.dark .data-table td { border-color: var(--border) !important; color: #f8fafc !important; }
-    body.dark .data-table tr:hover { background: #172D4D !important; }
-    body.dark .select-input, body.dark .search-input-field { background: #172D4D !important; color: #f8fafc !important; border-color: var(--border) !important; }
+    body.dark .kpi-card, body.dark .filter-bar, body.dark .table-container, body.dark .modal-card { background: #111E36 !important; border-color: var(--border) !important; }
+    body.dark .kpi-card-hero { background: linear-gradient(145deg, #003554 0%, #005b94 100%) !important; }
+    body.dark .data-table-fixed th { background: #0B1220 !important; color: #cbd5e1 !important; border-color: var(--border) !important; }
+    body.dark .data-table-fixed td { border-color: var(--border) !important; color: #f8fafc !important; }
+    body.dark .data-table-fixed tr:hover { background: #172D4D !important; }
+    body.dark .select-input, body.dark .search-input-field, body.dark .btn-page-num, body.dark .select-rows-per-page { background: #172D4D !important; color: #f8fafc !important; border-color: var(--border) !important; }
     body.dark .user-profile-badge { background: #172D4D !important; border-color: var(--border) !important; color: #f8fafc !important; }
   </style>
 </head>
@@ -160,19 +362,14 @@
     <main class="main">
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu">☰</button>
-        <div class="search-box">
-          <input type="text" placeholder="Cari POP, OLT, atau ID..." id="searchInput" />
-          <kbd>CTRL K</kbd>
-        </div>
         
-        <div class="top-actions" style="display: flex; align-items: center; gap: 16px;">
+        <div class="top-actions" style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
           <div class="clock" id="clock">
             <span id="date">-- --- ----</span>
             <strong id="time">00:00:00</strong>
             <small>GMT+7</small>
           </div>
 
-          <!-- PROFIL USER & LOGOUT -->
           <div class="user-profile-badge">
             <i class="fa-solid fa-circle-user" style="color: #0084bd; font-size: 1.1rem;"></i>
             <span id="loggedInUserName" style="font-weight: 700; font-size: 0.82rem;">Admin</span>
@@ -192,56 +389,93 @@
             <div>
               <span class="eyebrow">PREVENTIVE MAINTENANCE RJBT 2026</span>
               <h1>Executive Dashboard - DATA MASTER POP</h1>
-              <p>Monitoring Health Index (HI) & kondisi infrastruktur POP SBU Regional Jawa Timur.</p>
+              <p>Monitoring Health Index (HI) &amp; kondisi infrastruktur POP SBU Regional Jawa Timur.</p>
+            </div>
+
+            <!-- Tombol Export Excel sejajar di atas card GOOD CONDITION -->
+            <div class="header-action-group">
+              <button id="btnExportMasterExcel" class="btn-export-excel" onclick="exportMasterExcel()">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Export Excel</span>
+              </button>
             </div>
           </div>
 
-          <!-- KPI SUMMARY CARDS -->
-          <div class="kpi-grid">
-            <div class="kpi-card">
-              <span class="kpi-title">TOTAL SITE POP (SBU)</span>
+          <!-- KPI SUMMARY CARDS (1 HERO KIRI + 2x2 KANAN) -->
+          <div class="kpi-highlight-grid">
+            <!-- KIRI (TIDAK KLIKABLE): RATA-RATA HEALTH INDEX -->
+            <div class="kpi-card kpi-card-hero">
+              <div class="kpi-card-top">
+                <span class="kpi-hero-badge"><i class="fa-solid fa-bolt"></i> INDIKATOR UTAMA SBU</span>
+                <div class="kpi-hero-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+              </div>
+              <div>
+                <div class="kpi-title">RATA-RATA HEALTH INDEX</div>
+                <div id="kpiAvgHi" class="kpi-value kpi-hero-value">83.40%</div>
+                <div class="kpi-hero-progress">
+                  <div class="kpi-hero-progress-bar" id="kpiAvgHiBar"></div>
+                </div>
+                <span class="kpi-sub"><i class="fa-solid fa-circle-check"></i> Status Keseluruhan: Good Condition</span>
+              </div>
+            </div>
+
+            <!-- KANAN ATAS 1: TOTAL SITE POP -->
+            <div class="kpi-card kpi-clickable active-kpi" data-kpi="ALL" onclick="filterByKpiCard('ALL')" title="Klik untuk menampilkan semua site POP">
+              <div class="kpi-card-top">
+                <span class="kpi-title">TOTAL SITE POP (SBU)</span>
+                <div class="kpi-icon-box icon-blue"><i class="fa-solid fa-tower-broadcast"></i></div>
+              </div>
               <div id="kpiTotalPop" class="kpi-value text-blue">874</div>
               <span class="kpi-sub">Tersebar di 4 Regional KP</span>
             </div>
-            <div class="kpi-card">
-              <span class="kpi-title">RATA-RATA HEALTH INDEX</span>
-              <div id="kpiAvgHi" class="kpi-value text-green">83.76%</div>
-              <span class="kpi-sub text-green"><i class="fa-solid fa-circle-check"></i> Good Condition</span>
+
+            <!-- KANAN ATAS 2: GOOD CONDITION -->
+            <div class="kpi-card kpi-clickable" data-kpi="GOOD CONDITION" onclick="filterByKpiCard('GOOD CONDITION')" title="Klik untuk filter status GOOD CONDITION">
+              <div class="kpi-card-top">
+                <span class="kpi-title">GOOD CONDITION (80-100%)</span>
+                <div class="kpi-icon-box icon-green"><i class="fa-solid fa-circle-check"></i></div>
+              </div>
+              <div id="kpiGoodCount" class="kpi-value text-green">518</div>
+              <span class="kpi-sub text-green">Site Kondisi Prima</span>
             </div>
-            <div class="kpi-card">
-              <span class="kpi-title">GOOD CONDITION (80-100%)</span>
-              <div id="kpiGoodCount" class="kpi-value text-green">521</div>
-              <span class="kpi-sub">Site Kondisi Prima</span>
-            </div>
-            <div class="kpi-card">
-              <span class="kpi-title">WARNING (60-79%)</span>
-              <div id="kpiWarningCount" class="kpi-value text-amber">335</div>
+
+            <!-- KANAN BAWAH 1: WARNING -->
+            <div class="kpi-card kpi-clickable" data-kpi="WARNING" onclick="filterByKpiCard('WARNING')" title="Klik untuk filter status WARNING">
+              <div class="kpi-card-top">
+                <span class="kpi-title">WARNING (60-79%)</span>
+                <div class="kpi-icon-box icon-amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              </div>
+              <div id="kpiWarningCount" class="kpi-value text-amber">338</div>
               <span class="kpi-sub text-amber">Perlu Pemeliharaan</span>
             </div>
-            <div class="kpi-card">
-              <span class="kpi-title">NEED CHECK / DANGEROUS</span>
-              <div id="kpiCriticalCount" class="kpi-value text-red">18</div>
-              <span class="kpi-sub text-red">Perlu Action Segera</span>
+
+            <!-- KANAN BAWAH 2: NEED CHECK (GABUNGAN 0-59%) -->
+            <div class="kpi-card kpi-clickable" data-kpi="NEED CHECK" onclick="filterByKpiCard('NEED CHECK')" title="Klik untuk filter status NEED CHECK">
+              <div class="kpi-card-top">
+                <span class="kpi-title">NEED CHECK (0-59%)</span>
+                <div class="kpi-icon-box icon-orange"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+              </div>
+              <div id="kpiNeedCheckCount" class="kpi-value text-orange">18</div>
+              <span class="kpi-sub text-orange">Perlu Pengecekan &amp; Action</span>
             </div>
           </div>
 
           <!-- TABEL KONSOLIDASI HEALTH INDEX PER KP -->
           <div class="table-container">
-            <div style="margin-bottom: 14px;">
-              <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text);">Matriks Kesehatan POP per Regional KP</h3>
-              <p style="font-size: 0.78rem; color: var(--muted);">Ringkasan distribusi status Resume Index berdasarkan sheet DATA MASTER</p>
+            <div style="margin-bottom: 12px;">
+              <h3 style="font-size: 1.0rem; font-weight: 800; color: var(--text);">Matriks Kesehatan POP per Regional KP</h3>
+              <p style="font-size: 0.76rem; color: var(--muted);">Ringkasan distribusi status Resume Index berdasarkan sheet DATA MASTER</p>
             </div>
             <div class="table-responsive">
-              <table class="data-table">
+              <table class="data-table-fixed">
                 <thead>
                   <tr>
-                    <th>REGIONAL KP</th>
-                    <th style="text-align: center;">TOTAL POP</th>
-                    <th style="text-align: center;">AVG HEALTH INDEX</th>
-                    <th style="text-align: center;">GOOD CONDITION</th>
-                    <th style="text-align: center;">WARNING</th>
-                    <th style="text-align: center;">NEED CHECK</th>
-                    <th style="text-align: center;">DANGEROUS</th>
+                    <th style="width: 28%;">REGIONAL KP</th>
+                    <th style="text-align: center; width: 15%;">TOTAL POP</th>
+                    <th style="text-align: center; width: 21%;">AVG HEALTH INDEX</th>
+                    <th style="text-align: center; width: 12%;">GOOD</th>
+                    <th style="text-align: center; width: 12%;">WARNING</th>
+                    <th style="text-align: center; width: 12%;">NEED CHECK</th>
                   </tr>
                 </thead>
                 <tbody id="tableKpSummaryBody">
@@ -255,7 +489,7 @@
           <div class="table-container">
             <div class="filter-bar">
               <div class="filter-group">
-                <strong style="font-size: 0.85rem; color: var(--text);"><i class="fa-solid fa-filter"></i> Filter Data:</strong>
+                <strong style="font-size: 0.82rem; color: var(--text);"><i class="fa-solid fa-filter"></i> Filter Data:</strong>
                 <select id="filterKp" class="select-input" onchange="applyMasterFilters()">
                   <option value="ALL">Semua Regional KP</option>
                   <option value="SURABAYA">KP SURABAYA</option>
@@ -269,39 +503,59 @@
                   <option value="GOOD CONDITION">GOOD CONDITION</option>
                   <option value="WARNING">WARNING</option>
                   <option value="NEED CHECK">NEED CHECK</option>
-                  <option value="DANGEROUS">DANGEROUS</option>
                 </select>
               </div>
 
               <div>
-                <input type="text" id="tableSearchMaster" class="search-input-field" placeholder="Cari Nama POP / OLT / ID..." onkeyup="applyMasterFilters()" style="width: 240px;" />
+                <input type="text" id="tableSearchMaster" class="search-input-field" placeholder="Cari Nama POP / OLT / ID..." onkeyup="applyMasterFilters()" style="width: 230px;" />
               </div>
             </div>
 
             <div class="table-responsive">
-              <table class="data-table">
+              <table class="data-table-fixed">
                 <thead>
                   <tr>
-                    <th>REGIONAL KP</th>
-                    <th>KATEGORI</th>
-                    <th>ID POP</th>
-                    <th>NAMA POP</th>
-                    <th>HOSTNAME OLT</th>
-                    <th style="text-align: center;">POWER SUPPLY</th>
-                    <th style="text-align: center;">AC</th>
-                    <th style="text-align: center;">GENSET</th>
-                    <th style="text-align: center;">PM POP</th>
-                    <th style="text-align: center;">HEALTH INDEX</th>
-                    <th style="text-align: center;">RESUME INDEX</th>
+                    <th style="text-align: center; width: 3.5%;">NO</th>
+                    <th style="width: 10.5%;">REGIONAL KP</th>
+                    <th style="width: 7.5%;">KATEGORI</th>
+                    <th style="width: 10.5%;">ID POP</th>
+                    <th style="width: 22%;">NAMA POP</th>
+                    <th style="width: 10%;">HOSTNAME OLT</th>
+                    <th style="text-align: center; width: 8.5%;">POWER SUPPLY</th>
+                    <th style="text-align: center; width: 6.5%;">AC</th>
+                    <th style="text-align: center; width: 8.5%;">GENSET</th>
+                    <th style="text-align: center; width: 4.5%;">PM POP</th>
+                    <th style="text-align: center; width: 5.5%;">HEALTH</th>
+                    <th style="text-align: center; width: 12%;">RESUME INDEX</th>
                   </tr>
                 </thead>
                 <tbody id="tableMasterBody">
                   <tr>
-                    <td colspan="11" style="text-align: center; padding: 24px; color: var(--muted);">Memuat data master POP...</td>
+                    <td colspan="12" style="text-align: center; padding: 20px; color: var(--muted);">Memuat data master POP...</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+
+            <!-- PAGINASI CONTROLS (MODEL MONITORING RJBT) -->
+            <div class="pagination-wrapper">
+              <div class="pagination-left">
+                <span>Tampilkan</span>
+                <select id="selectRowsPerPage" class="select-rows-per-page" onchange="changeRowsPerPage()">
+                  <option value="10" selected>10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span>data per halaman | </span>
+                <span id="paginationInfo">1 - 10 dari 0 data</span>
+              </div>
+
+              <div class="pagination-controls" id="paginationControls">
+                <!-- Render Tombol Paginasi via JS -->
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -324,20 +578,93 @@
     </main>
   </div>
 
-  <!-- MODAL POP-UP KONFIRMASI LOGOUT -->
-<div class="modal-overlay" id="logoutModal" onclick="if(event.target === this) closeLogoutModal()">
-  <div class="modal-card">
-    <div class="modal-icon">
-      <i class="fa-solid fa-right-from-bracket"></i>
-    </div>
-    <h3 class="modal-title">Konfirmasi Keluar</h3>
-    <p class="modal-desc">Apakah Anda yakin ingin keluar dari sistem Monitoring PM RJBT?</p>
-    <div class="modal-actions">
-      <button type="button" class="btn-modal btn-cancel" onclick="closeLogoutModal()">Batal</button>
-      <button type="button" class="btn-modal btn-confirm-logout" onclick="confirmLogout()">Ya, Keluar</button>
+  <!-- MODAL EDIT CATATAN & ACTION DATA MASTER (GAYA MODUL RJBT) -->
+  <div id="modalNoteMaster" class="modal-overlay" onclick="if(event.target === this) closeNoteModal()">
+    <div class="rjbt-modal-card">
+      
+      <!-- HEADER MODAL BERGAYA RJBT -->
+      <div class="rjbt-modal-header">
+        <div>
+          <h2 id="modalNoteTitle" class="rjbt-modal-id">POP_1SBY003</h2>
+          <p id="modalNoteSub" class="rjbt-modal-sub">INTILAND LT.5 {SURABAYA} - Kategori: POP-SB | Hostname OLT: SURABAYA</p>
+        </div>
+        <button type="button" class="rjbt-modal-close" onclick="closeNoteModal()">&times;</button>
+      </div>
+
+      <!-- BODY MODAL BERBENTUK SECTION CARD -->
+      <form id="formNoteMaster" onsubmit="saveMasterNotes(event)" class="rjbt-modal-body">
+        <input type="hidden" id="noteIdPop" />
+
+        <!-- SECTION 1: RINGKASAN HEALTH INDEX SITE -->
+        <div class="rjbt-section-box highlight-box">
+          <div class="rjbt-box-header">
+            <span class="rjbt-box-title"><i class="fa-solid fa-chart-line text-blue"></i> Health Index & Resume Site</span>
+            <span id="modalNoteHiBadge" class="rjbt-hi-badge">HEALTH INDEX: 100%</span>
+          </div>
+          <div class="rjbt-info-row">
+            <div><strong>Power Supply:</strong> <span id="modalNotePs">-</span></div>
+            <div><strong>AC:</strong> <span id="modalNoteAc">-</span></div>
+            <div><strong>Genset:</strong> <span id="modalNoteGenset">-</span></div>
+            <div><strong>PM POP:</strong> <span id="modalNotePmPop">-</span></div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: FORM CATATAN & GAMAS -->
+        <div class="rjbt-section-box">
+          <div class="rjbt-box-header">
+            <span class="rjbt-box-title"><i class="fa-solid fa-clipboard-list text-blue"></i> Catatan Pemeliharaan & Histori Gamas</span>
+          </div>
+
+          <div class="rjbt-form-grid">
+            <div class="rjbt-form-group col-span-2">
+              <label for="noteCatatanPm">Catatan PM</label>
+              <textarea id="noteCatatanPm" rows="2" class="rjbt-input" placeholder="Masukkan catatan hasil Preventif Maintenance..."></textarea>
+            </div>
+
+            <div class="rjbt-form-group col-span-2">
+              <label for="noteGamasTerakhir">Gamas Terakhir</label>
+              <input type="text" id="noteGamasTerakhir" class="rjbt-input" placeholder="Contoh: 10 OKTOBER 2026 - KABEL FO PUTUS" />
+            </div>
+
+            <div class="rjbt-form-group col-span-2">
+              <label for="noteRootCause">Root Cause (Akar Masalah)</label>
+              <textarea id="noteRootCause" rows="2" class="rjbt-input" placeholder="Masukkan akar penyebab gangguan..."></textarea>
+            </div>
+
+            <div class="rjbt-form-group col-span-2">
+              <label for="noteAction">Action (Tindak Lanjut Perbaikan)</label>
+              <textarea id="noteAction" rows="2" class="rjbt-input" placeholder="Masukkan tindakan perbaikan / rekomendasikan penggantian..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER BUTTONS -->
+        <div class="rjbt-modal-footer">
+          <button type="button" class="btn-rjbt-sec" onclick="closeNoteModal()">Tutup</button>
+          <button type="submit" class="btn-rjbt-pri" id="btnSaveNote">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Catatan
+          </button>
+        </div>
+
+      </form>
+
     </div>
   </div>
-</div>
+
+  <!-- MODAL POP-UP KONFIRMASI LOGOUT -->
+  <div class="modal-overlay" id="logoutModal" onclick="if(event.target === this) closeLogoutModal()">
+    <div class="modal-card">
+      <div class="modal-icon">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </div>
+      <h3 class="modal-title">Konfirmasi Keluar</h3>
+      <p class="modal-desc">Apakah Anda yakin ingin keluar dari sistem Monitoring PM RJBT?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeLogoutModal()">Batal</button>
+        <button type="button" class="btn-modal btn-confirm-logout" onclick="confirmLogout()">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

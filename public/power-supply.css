@@ -43,20 +43,54 @@ body {
   margin: 0;
 }
 
+/* ==========================================================
+   TOMBOL HEADER ACTIONS (SERAGAM DENGAN AC, GENSET & PM POP)
+   ========================================================== */
+
+/* Tombol Refresh Data */
 .btn-refresh {
   background: #005b94;
   color: #ffffff;
   border: none;
   padding: 8px 16px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 91, 148, 0.2);
 }
 
 .btn-refresh:hover {
   background: #00426d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 91, 148, 0.3);
+}
+
+/* Tombol Export Excel */
+.btn-export-excel {
+  background-color: #16a34a;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+}
+
+.btn-export-excel:hover {
+  background-color: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.3);
 }
 
 /* KPI Summary Cards */
@@ -393,16 +427,32 @@ body {
   background: #ffffff;
   border-radius: 12px;
   width: 100%;
-  max-width: 600px;
+  max-width: 740px; /* Ukuran sama dengan popup PM POP */
+  max-height: 90vh;
   padding: 20px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Header dan footer tetap, isi yang digulir */
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border-bottom: 1px solid #e2e8f0;
   padding-bottom: 12px;
+  flex: 0 0 auto;
+}
+
+/* Scroll internal seperti popup PM POP dan Genset */
+.modal-card > .modal-body {
+  max-height: 72vh;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .modal-header h3 { margin: 0; font-size: 1.1rem; }
@@ -441,6 +491,7 @@ body {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+  flex: 0 0 auto;
 }
 
 .btn-sec {
@@ -527,24 +578,41 @@ body.dark .excel-table thead th.sticky-col-2 {
   background: #0B1220 !important;
 }
 
-.btn-export-excel {
-  background-color: #16a34a;
-  color: #ffffff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+@media (max-width: 780px) {
+  .modal-card {
+    width: calc(100% - 24px);
+    max-height: calc(100vh - 24px);
+    padding: 16px;
+  }
+
+  .modal-card > .modal-body {
+    max-height: calc(100vh - 150px);
+  }
 }
 
-.btn-export-excel:hover {
-  background-color: #15803d;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.3);
+/* =========================================================
+   EFEK BLUR BACKGROUND SAAT MODAL POP-UP DIBUKA
+   ========================================================= */
+.modal-overlay,
+.modal,
+.modal-backdrop,
+div[id*="modal"] {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+/* =========================================================
+   BLUR SIDEBAR & TOPBAR SAAT POP-UP DI DALAM IFRAME AKTIF
+   ========================================================= */
+.sidebar,
+.topbar {
+  transition: filter 0.2s ease;
+}
+
+body.iframe-modal-open .sidebar,
+body.iframe-modal-open .topbar {
+  filter: blur(5px) brightness(0.75) !important;
+  pointer-events: none !important;
+  user-select: none !important;
 }

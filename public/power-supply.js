@@ -362,14 +362,26 @@ function setValue(id, val) {
   const cleanVal = (val !== null && val !== undefined && String(val).trim() !== '' && String(val) !== '-') ? String(val).trim() : '';
 
   if (el.tagName === 'SELECT') {
-    let exists = Array.from(el.options).some(opt => opt.value === cleanVal);
-    if (!exists && cleanVal !== '') {
+    // 1. Cari pencocokan nilai eksak terlebih dahulu
+    let targetOpt = Array.from(el.options).find(opt => opt.value === cleanVal);
+    
+    // 2. Jika tidak ketemu eksak, cari pencocokan secara Case-Insensitive (misal "yes" dimatch ke "YES")
+    if (!targetOpt && cleanVal !== '') {
+      targetOpt = Array.from(el.options).find(opt => opt.value.toUpperCase() === cleanVal.toUpperCase());
+    }
+
+    if (targetOpt) {
+      el.value = targetOpt.value;
+    } else if (cleanVal !== '') {
+      // 3. Hanya buat opsi baru jika nilai memang belum ada sama sekali di daftar
       const newOpt = document.createElement('option');
       newOpt.value = cleanVal;
       newOpt.textContent = cleanVal;
       el.appendChild(newOpt);
+      el.value = cleanVal;
+    } else {
+      el.value = '';
     }
-    el.value = cleanVal;
   } else if (el.type === 'date') {
     el.value = formatDateForInput(cleanVal);
   } else {
